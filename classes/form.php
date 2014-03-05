@@ -91,7 +91,8 @@ class Form extends \Fuel\Core\Form{
 			$values[$relationObject->id] = $relationObject->$relationProperty;
 		}
 		
-		switch (get_class($this->model->relations()[$relationName]))
+		$relations = $this->model->relations();
+		switch (get_class($relations[$relationName]))
 		{
 			case 'Orm\ManyMany':
 				$relationType = 'manymany';
