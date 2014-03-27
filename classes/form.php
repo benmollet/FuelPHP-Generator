@@ -13,12 +13,31 @@ class Form extends \Fuel\Core\Form{
 	public $addBackButton = false;
 	public $backLocation;
 	public $submitUrl;
+	public $ajax;
+	public $modelProperties;
 	
-	public function __construct($model, $submitUrl = null)
+	public function __construct($model, $properties = null)
     {
+		if ($properties !== null)
+		{
+			if (key_exists('submitUrl', $properties) === true)
+			{
+				$this->submitUrl = $properties['submitUrl'];
+			}
+		}
+		
+		if ($this->submitUrl === null)
+		{
+			$this->submitUrl = \Uri::current();
+		}
+		
+		if (\Input::is_ajax() === true)
+		{
+			$this->ajax = true;
+		}
+		
 		$this->formElements = array();
 		$this->model = $model;
-		$this->submitUrl = $submitUrl;
 		
         return;
     }
@@ -41,7 +60,7 @@ class Form extends \Fuel\Core\Form{
 		));
 	}
 	
-	public function addTextarea($name, $displayName)
+	public function addTextarea($name, $displayName = null)
 	{
 		$value = '';
 		
@@ -58,7 +77,7 @@ class Form extends \Fuel\Core\Form{
 		));
 	}
 	
-	public function addCheckbox($name, $displayName)
+	public function addCheckbox($name, $displayName, $properties = null)
 	{
 		$value = '';
 		
@@ -73,6 +92,7 @@ class Form extends \Fuel\Core\Form{
 			'displayName'	=> $displayName,
 			'value'			=> $value,
 			'class'			=> '',
+			'properties'	=> $properties,	
 		));
 	}
 	
@@ -115,8 +135,6 @@ class Form extends \Fuel\Core\Form{
 					}
 					break;
 			}
-//			$relationId = $relationName . '_id';
-//			$value = $this->model->$relationId;
 		}
 		
 		array_push($this->formElements, array(
@@ -131,15 +149,20 @@ class Form extends \Fuel\Core\Form{
 		));
 	}
 	
+	public function addModelProperty($propertyName, $propertyValue)
+	{
+		$this->modelProperties[$propertyName] = $propertyValue;
+	}
+	
 	public function generate()
 	{
-		return View::forge('generate/form', $this);
+		return View::forge('form', $this);
 	}
 	
 	public function checkPost()
 	{
 		
-		if (Input::method() == 'POST')
+		if (Input::method() == 'POST' and empty($_POST) === false)
 		{
 			try
 			{
@@ -164,7 +187,7 @@ class Form extends \Fuel\Core\Form{
 						}
 						else
 						{
-							$model->$element['name'] = 1;
+							$model->$element['name'] = Input::post($element['name']);
 						}
 					}
 					else if ($element['type'] === 'select')
@@ -202,6 +225,12 @@ class Form extends \Fuel\Core\Form{
 						$model->$element['name'] = Input::post($element['name']);
 					}
 				}
+				
+				foreach ($this->modelProperties as $propertyName => $propertyValue)
+				{
+					$model->$propertyName = $propertyValue;
+				}
+				
 				$model->save();
 				
 				if (isset($model->display_name) === true)
@@ -217,6 +246,7 @@ class Form extends \Fuel\Core\Form{
 				{
 					Response::redirect(Uri::create($this->submitUrl));
 				}
+				
 			} catch (Exception $ex) {
 				$errors = Session::get_flash('errors');
 				if (is_array($errors) === false)

@@ -39,6 +39,10 @@ class Table
 		{
 			$this->tableClass = $properties['tableClass'];
 		}
+		else
+		{
+			$this->tableClass = 'table';
+		}
 		
 		if (key_exists('tableClass', $properties) === true)
 		{
@@ -113,12 +117,16 @@ class Table
 		}
 		else
 		{
-			
 			$this->models = $models;
 			$this->modelCount = count($models);
 			$this->pageCount = ceil($this->modelCount / $this->rowsLimit);
 			$this->pageStart = ($this->rowsLimit * $this->page) - $this->rowsLimit;
 			$this->pageEnd = $this->rowsLimit * $this->page;
+			
+			if (count($models) > $this->rowsLimit)
+			{
+				$this->determinePagination = true;
+			}
 		}
 		
         $this->rowContent = array();
@@ -130,7 +138,7 @@ class Table
         $data = new stdClass;
         $data = $this;
         
-        return View::forge('generate/table', $data);
+        return View::forge('table', $data);
     }
     
     public function addCell($cellContents)

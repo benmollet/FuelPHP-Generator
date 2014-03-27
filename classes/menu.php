@@ -49,6 +49,6 @@ class Menu {
     
     public function generate()
     {
-        return \View::forge('generate/menu', $this);
+        return \View::forge('menu', $this);
     }
 }
