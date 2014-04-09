@@ -17,6 +17,7 @@ class Table
 	public $tableHeaders;
 	public $page;
 	public $paginationType;
+	public $urlSuffix;
     
     public function __construct($models, $properties)
     {
@@ -127,6 +128,15 @@ class Table
 			{
 				$this->determinePagination = true;
 			}
+		}
+		
+		if (\Input::method() === 'POST' and \Input::post('urlSuffix') !== null)
+		{
+			$this->urlSuffix = \Input::post('urlSuffix');
+		}
+		else
+		{
+			$this->urlSuffix = '';
 		}
 		
         $this->rowContent = array();

@@ -8,6 +8,7 @@
 
 class Form extends \Fuel\Core\Form{
 	public $formElements;
+	public $formName;
 	public $model;
 	public $relationModels;
 	public $addBackButton = false;
@@ -15,20 +16,60 @@ class Form extends \Fuel\Core\Form{
 	public $submitUrl;
 	public $ajax;
 	public $modelProperties;
+	public $redirectLocation;
+	public $urlSuffix;
 	
 	public function __construct($model, $properties = null)
     {
+		if (\Input::method() === 'POST' and \Input::post('urlSuffix') !== null)
+		{
+			$this->urlSuffix = \Input::post('urlSuffix');
+		}
+		else
+		{
+			$this->urlSuffix = '';
+		}
+		
 		if ($properties !== null)
 		{
 			if (key_exists('submitUrl', $properties) === true)
 			{
 				$this->submitUrl = $properties['submitUrl'];
 			}
+			
+			if (key_exists('redirectLocation', $properties) === true)
+			{
+				if ($this->urlSuffix !== null)
+				{
+					$this->redirectLocation = \Uri::create($this->urlSuffix . '/' . $properties['redirectLocation']);
+				}
+				else
+				{
+					$this->redirectLocation = $properties['redirectLocation'];
+				}
+			}
+			
+			if (key_exists('formName', $properties) === true)
+			{
+				$this->formName = $properties['formName'];
+			}
 		}
 		
 		if ($this->submitUrl === null)
 		{
 			$this->submitUrl = \Uri::current();
+		}
+		
+		if ($this->redirectLocation === null)
+		{
+			if ($this->urlSuffix !== null)
+			{
+				$this->redirectLocation = \Uri::create($this->urlSuffix . '/' . \Uri::string());
+			}
+			else
+			{
+				$this->redirectLocation = \Uri::current();
+			}
 		}
 		
 		if (\Input::is_ajax() === true)
@@ -162,7 +203,7 @@ class Form extends \Fuel\Core\Form{
 	public function checkPost()
 	{
 		
-		if (Input::method() == 'POST' and empty($_POST) === false)
+		if (Input::method() == 'POST' and empty($_POST) === false and Input::post('form-name') === $this->formName)
 		{
 			try
 			{
@@ -225,10 +266,12 @@ class Form extends \Fuel\Core\Form{
 						$model->$element['name'] = Input::post($element['name']);
 					}
 				}
-				
-				foreach ($this->modelProperties as $propertyName => $propertyValue)
+				if ($this->modelProperties !== null and empty($this->modelProperties) === false)
 				{
-					$model->$propertyName = $propertyValue;
+					foreach ($this->modelProperties as $propertyName => $propertyValue)
+					{
+						$model->$propertyName = $propertyValue;
+					}
 				}
 				
 				$model->save();
@@ -242,9 +285,9 @@ class Form extends \Fuel\Core\Form{
 					Session::set_flash('success', $successMessage . '(displayName not set in model)');
 				}
 				
-				if ($this->submitUrl !== null)
+				if (Input::post('redirect-location') !== null)
 				{
-					Response::redirect(Uri::create($this->submitUrl));
+					Response::redirect(Input::post('redirect-location'));
 				}
 				
 			} catch (Exception $ex) {
@@ -265,14 +308,7 @@ class Form extends \Fuel\Core\Form{
 	{
 		$this->addBackButton = true;
 		
-		if (\Input::referrer() !== "")
-		{
-			$this->backLocation = \Input::referrer();
-		}
-		else
-		{
-			$this->backLocation = Uri::create($defultLocation);
-		}
+		$this->backLocation = Uri::create($this->urlSuffix . $defultLocation);
 		
 		return;
 	}
