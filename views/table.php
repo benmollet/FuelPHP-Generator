@@ -64,7 +64,7 @@ if ($inPanel === true) {
 						//If its a link generate the first part of the link
 						if (key_exists('link', $cellContents) === true)
 						{
-							echo '<a href="' . Uri::create($cellContents['link']);
+							echo '<a href="' . Uri::create($urlSuffix . $cellContents['link']);
 
 							if (key_exists('linkArgument', $cellContents) === true)
 							{

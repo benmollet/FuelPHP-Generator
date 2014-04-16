@@ -16,15 +16,15 @@ if (Session::get_flash('error'))
 }
 ?>
 <form <?php echo $ajax === true ? 'class="ajax-form"' : ''; ?> action="<?php echo $submitUrl; ?>" role="form" method="post">
-	<?php
+	<?php if (isset($formName) === true) { ?>
+	<input type="hidden" name="formName" value="<?php echo $formName; ?>">
+	<?php } if ($redirectLocation !== null) { ?>
+	<input type="hidden" name="redirect-location" value="<?php echo $redirectLocation; ?>">
+	<?php }
 	foreach ($formElements as $formElement)
 	{
 		echo '<div class="row">';
 		echo '<div class="form-group col-md-12">';
-		if (isset($formName) === true)
-		{
-			echo '<input type="hidden" name="formName" value="' . $formName . '">';
-		}
 		if ($formElement['type'] === 'textarea')
 		{
 			if ($formElement['displayName'] !== null)
@@ -105,7 +105,7 @@ if (Session::get_flash('error'))
 		else if ($formElement['type'] === 'select')
 		{
 			$multiple = '';
-			if ($formElement['relationType'] === 'manymany')
+			if ($formElement['relationType'] === 'Orm\ManyMany')
 			{
 				$multiple = 'multiple';
 			}

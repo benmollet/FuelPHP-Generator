@@ -16,15 +16,39 @@ class Form extends \Fuel\Core\Form{
 	public $submitUrl;
 	public $ajax;
 	public $modelProperties;
+	public $redirectLocation;
+	public $urlSuffix;
 	
 	public function __construct($model, $properties = null)
     {
+		if (\Input::method() === 'POST' and \Input::post('urlSuffix') !== null)
+		{
+			$this->urlSuffix = \Input::post('urlSuffix');
+		}
+		else
+		{
+			$this->urlSuffix = '';
+		}
+		
 		if ($properties !== null)
 		{
 			if (key_exists('submitUrl', $properties) === true)
 			{
 				$this->submitUrl = $properties['submitUrl'];
 			}
+			
+			if (key_exists('redirectLocation', $properties) === true)
+			{
+				if ($this->urlSuffix !== null)
+				{
+					$this->redirectLocation = \Uri::create($this->urlSuffix . '/' . $properties['redirectLocation']);
+				}
+				else
+				{
+					$this->redirectLocation = $properties['redirectLocation'];
+				}
+			}
+			
 			if (key_exists('formName', $properties) === true)
 			{
 				$this->formName = $properties['formName'];
@@ -34,6 +58,18 @@ class Form extends \Fuel\Core\Form{
 		if ($this->submitUrl === null)
 		{
 			$this->submitUrl = \Uri::current();
+		}
+		
+		if ($this->redirectLocation === null)
+		{
+			if ($this->urlSuffix !== null)
+			{
+				$this->redirectLocation = \Uri::create($this->urlSuffix . '/' . \Uri::string());
+			}
+			else
+			{
+				$this->redirectLocation = \Uri::current();
+			}
 		}
 		
 		if (\Input::is_ajax() === true)
@@ -111,37 +147,55 @@ class Form extends \Fuel\Core\Form{
 		}
 		
 		$values = array();
-		$value = null;
+		$value = array();
+		
 		foreach ($relationObjects as $relationObject)
 		{
 			$values[$relationObject->id] = $relationObject->$relationProperty;
 		}
 		
-		$relations = $this->model->relations();
-		switch (get_class($relations[$relationName]))
-		{
-			case 'Orm\ManyMany':
-				$relationType = 'manymany';
-				break;
-			default:
-				echo 'something is wrong';
-				die;
-				break;
-		}
+		$model = $this->model;
+		$relations = $model::relations();
+		
+		
+		$relationType = get_class($relations[$relationName]);
 		
 		if (is_object($this->model) === true)
 		{
-			$this->relationModels->$relationName = $relationObjects;
+			$this->relationModels = $relationObjects;
 			switch ($relationType)
 			{
-				case 'manymany':
+				case 'Orm\ManyMany':
 					foreach ($this->model->$relationName as $manyObject)
 					{
 						$value[$manyObject->id] = $manyObject->$relationProperty;
 					}
 					break;
+				case 'Orm\BelongsTo':
+					echo 'not implemented :(';
+					die;
+					break;
+				default;
+					echo 'something is wrong';
+					die;
 			}
 		}
+		else
+		{
+			switch ($relationType)
+			{
+				case 'Orm\ManyMany':
+					echo 'not implemented :(';
+					die;
+					break;
+				case 'Orm\BelongsTo':
+					break;
+				default;
+					echo 'something is wrong';
+					die;
+			}
+		}
+		
 		array_push($this->formElements, array(
 			'type'			=> 'select',
 			'relationName'			=> $relationName,
@@ -274,14 +328,7 @@ class Form extends \Fuel\Core\Form{
 	{
 		$this->addBackButton = true;
 		
-		if (\Input::referrer() !== "")
-		{
-			$this->backLocation = \Input::referrer();
-		}
-		else
-		{
-			$this->backLocation = Uri::create($defultLocation);
-		}
+		$this->backLocation = Uri::create($this->urlSuffix . $defultLocation);
 		
 		return;
 	}
