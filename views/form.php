@@ -21,6 +21,10 @@ if (Session::get_flash('error'))
 	{
 		echo '<div class="row">';
 		echo '<div class="form-group col-md-12">';
+		if (isset($formName) === true)
+		{
+			echo '<input type="hidden" name="formName" value="' . $formName . '">';
+		}
 		if ($formElement['type'] === 'textarea')
 		{
 			if ($formElement['displayName'] !== null)

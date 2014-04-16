@@ -8,6 +8,7 @@
 
 class Form extends \Fuel\Core\Form{
 	public $formElements;
+	public $formName;
 	public $model;
 	public $relationModels;
 	public $addBackButton = false;
@@ -24,6 +25,10 @@ class Form extends \Fuel\Core\Form{
 			{
 				$this->submitUrl = $properties['submitUrl'];
 			}
+			if (key_exists('formName', $properties) === true)
+			{
+				$this->formName = $properties['formName'];
+			}
 		}
 		
 		if ($this->submitUrl === null)
@@ -37,6 +42,7 @@ class Form extends \Fuel\Core\Form{
 		}
 		
 		$this->formElements = array();
+		$this->relationModels = new \stdClass;
 		$this->model = $model;
 		
         return;
@@ -125,7 +131,7 @@ class Form extends \Fuel\Core\Form{
 		
 		if (is_object($this->model) === true)
 		{
-			$this->relationModels = $relationObjects;
+			$this->relationModels->$relationName = $relationObjects;
 			switch ($relationType)
 			{
 				case 'manymany':
@@ -136,7 +142,6 @@ class Form extends \Fuel\Core\Form{
 					break;
 			}
 		}
-		
 		array_push($this->formElements, array(
 			'type'			=> 'select',
 			'relationName'			=> $relationName,
@@ -161,100 +166,104 @@ class Form extends \Fuel\Core\Form{
 	
 	public function checkPost()
 	{
-		
-		if (Input::method() == 'POST' and empty($_POST) === false)
+		if (Input::method() == 'POST' and empty($_POST) === false and Input::post('formName') === $this->formName)
 		{
-			try
+			if (isset($this->formName) === false and (key_exists('formName', Input::post()) === false) or (isset($this->formName) === true and key_exists('formName', Input::post()) === true and $this->formName === Input::post('formName')))
 			{
-				if (is_object($this->model) === true)
+				try
 				{
-					$model = $this->model;
-					$successMessage = 'Edited ';
-				}
-				else
-				{
-					$model = new $this->model();
-					$successMessage = 'Created new ';
-				}
-				
-				foreach ($this->formElements as $element)
-				{
-					if ($element['type'] === 'checkbox')
+					if (is_object($this->model) === true)
 					{
-						if (Input::post($element['name']) === null)
+						$model = $this->model;
+						$successMessage = 'Edited ';
+					}
+					else
+					{
+						$model = new $this->model();
+						$successMessage = 'Created new ';
+					}
+
+					foreach ($this->formElements as $element)
+					{
+						if ($element['type'] === 'checkbox')
 						{
-							$model->$element['name'] = 0;
+							if (Input::post($element['name']) === null)
+							{
+								$model->$element['name'] = 0;
+							}
+							else
+							{
+								$model->$element['name'] = Input::post($element['name']);
+							}
 						}
-						else
+						else if ($element['type'] === 'select')
+						{
+							$formName = $element['relationName'] . '_' . $element['relationProperty'];
+							if ($element['relationType'] === 'manymany')
+							{
+								//check to delete
+								foreach ($this->relationModels->$element['relationName'] as $existingModel)
+								{
+									if (\Input::post($formName) === null or key_exists($existingModel->id, \Input::post($formName)) === false)
+									{
+										unset($model->{$element['relationName']}[$existingModel->id]);
+									}
+								}
+
+								//Add in the new ones
+								foreach (\Input::post($formName) as $selectedId)
+								{
+									if (key_exists($selectedId, $model->$element['relationName']) === false)
+									{
+									$model->{$element['relationName']}[$selectedId] = $this->relationModels->{$element['relationName']}[$selectedId];
+									}
+								}
+							}
+							else
+							{
+								$formName = $element['relationName'] . '_' . $element['relationProperty'];
+								$relationId = $element['relationName'] . '_id';
+								$model->$relationId  = \Input::post($formName);
+							}
+						}
+						else 
 						{
 							$model->$element['name'] = Input::post($element['name']);
 						}
 					}
-					else if ($element['type'] === 'select')
+
+					foreach ($this->modelProperties as $propertyName => $propertyValue)
 					{
-						$formName = $element['relationName'] . '_' . $element['relationProperty'];
-						if ($element['relationType'] === 'manymany')
-						{
-							//check to delete
-							foreach ($this->relationModels as $existingModel)
-							{
-								if (\Input::post($formName) === null or key_exists($existingModel->id, \Input::post($formName)) === false)
-								{
-									unset($model->{$element['relationName']}[$existingModel->id]);
-								}
-							}
-							
-							//Add in the new ones
-							foreach (\Input::post($formName) as $selectedId)
-							{
-								if (key_exists($selectedId, $model->$element['relationName']) === false)
-								{
-									$model->{$element['relationName']}[$selectedId] = $this->relationModels[$selectedId];
-								}
-							}
-						}
-						else
-						{
-							$formName = $element['relationName'] . '_' . $element['relationProperty'];
-							$relationId = $element['relationName'] . '_id';
-							$model->$relationId  = \Input::post($formName);
-						}
+						$model->$propertyName = $propertyValue;
 					}
-					else 
+
+					$model->save();
+
+					if (isset($model->display_name) === true)
 					{
-						$model->$element['name'] = Input::post($element['name']);
+						Session::set_flash('success', $successMessage . $model->display_name);
 					}
-				}
-				
-				foreach ($this->modelProperties as $propertyName => $propertyValue)
+					else
+					{
+						Session::set_flash('success', $successMessage . '(displayName not set in model)');
+					}
+
+					if ($this->submitUrl !== null)
+					{
+						Response::redirect(Uri::create($this->submitUrl));
+					}
+
+				} 
+				catch (Exception $ex) 
 				{
-					$model->$propertyName = $propertyValue;
+					$errors = Session::get_flash('errors');
+					if (is_array($errors) === false)
+					{
+						$errors = array();
+					}
+					array_push($errors, $ex->getMessage());
+					Session::set_flash('error', $errors);
 				}
-				
-				$model->save();
-				
-				if (isset($model->display_name) === true)
-				{
-					Session::set_flash('success', $successMessage . $model->display_name);
-				}
-				else
-				{
-					Session::set_flash('success', $successMessage . '(displayName not set in model)');
-				}
-				
-				if ($this->submitUrl !== null)
-				{
-					Response::redirect(Uri::create($this->submitUrl));
-				}
-				
-			} catch (Exception $ex) {
-				$errors = Session::get_flash('errors');
-				if (is_array($errors) === false)
-				{
-					$errors = array();
-				}
-				array_push($errors, $ex->getMessage());
-				Session::set_flash('error', $errors);
 			}
 			
 			return;
