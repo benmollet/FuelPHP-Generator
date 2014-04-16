@@ -146,35 +146,53 @@ class Form extends \Fuel\Core\Form{
 		}
 		
 		$values = array();
-		$value = null;
+		$value = array();
 		foreach ($relationObjects as $relationObject)
 		{
 			$values[$relationObject->id] = $relationObject->$relationProperty;
 		}
 		
-		$relations = $this->model->relations();
-		switch (get_class($relations[$relationName]))
-		{
-			case 'Orm\ManyMany':
-				$relationType = 'manymany';
-				break;
-			default:
-				echo 'something is wrong';
-				die;
-				break;
-		}
+		$model = $this->model;
+		$relations = $model::relations();
+		
+		
+		$relationType = get_class($relations[$relationName]);
 		
 		if (is_object($this->model) === true)
 		{
 			$this->relationModels = $relationObjects;
 			switch ($relationType)
 			{
-				case 'manymany':
+				case 'Orm\ManyMany':
 					foreach ($this->model->$relationName as $manyObject)
 					{
 						$value[$manyObject->id] = $manyObject->$relationProperty;
 					}
 					break;
+				case 'Orm\BelongsTo':
+					echo 'not implemented :(';
+					die;
+					break;
+				default;
+					echo 'something is wrong';
+					die;
+			}
+		}
+		else
+		{
+			switch ($relationType)
+			{
+				case 'Orm\ManyMany':
+					echo 'not implemented :(';
+					die;
+					break;
+				case 'Orm\BelongsTo':
+					//$value[0] 
+					//die;
+					break;
+				default;
+					echo 'something is wrong';
+					die;
 			}
 		}
 		

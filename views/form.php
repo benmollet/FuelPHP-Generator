@@ -105,7 +105,7 @@ if (Session::get_flash('error'))
 		else if ($formElement['type'] === 'select')
 		{
 			$multiple = '';
-			if ($formElement['relationType'] === 'manymany')
+			if ($formElement['relationType'] === 'Orm\ManyMany')
 			{
 				$multiple = 'multiple';
 			}
