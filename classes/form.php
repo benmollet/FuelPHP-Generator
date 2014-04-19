@@ -7,6 +7,8 @@
  */
 
 class Form extends \Fuel\Core\Form{
+	
+	public $buttons;
 	public $formElements;
 	public $formName;
 	public $model;
@@ -18,6 +20,15 @@ class Form extends \Fuel\Core\Form{
 	public $modelProperties;
 	public $redirectLocation;
 	public $urlSuffix;
+	
+	public static function getInputTypes()
+	{
+		return array(
+			'text'		=>	'Text',
+			'boolean'	=>	'Boolean',
+			'textarea'	=>	'Textarea',
+		);
+	}
 	
 	public function __construct($model, $properties = null)
     {
@@ -83,13 +94,43 @@ class Form extends \Fuel\Core\Form{
         return;
     }
 	
+	public function readProperties($properties)
+	{
+		foreach ($properties as $property)
+		{
+			if ($property['type'] === 'text')
+			{
+				$this::addTextField($property['name'], $property['display_name']);
+			}
+			else if ($property['type'] === 'textarea')
+			{
+				$this::addTextarea($property['name'], $property['display_name']);
+			}
+		}
+	}
+	
+	public function addButton($html)
+	{
+		if ($this->buttons === null)
+		{
+			$this->buttons = array();
+		}
+		array_push($this->buttons, $html);
+	}
+	
 	public function addTextfield($name, $displayName)
 	{
 		$value = '';
-		
 		if (is_object($this->model) === true)
 		{
-			$value = $this->model->$name;
+			if (key_exists($name, $this->model->properties()) === true or isset($this->model->$name))
+			{
+				$value = $this->model->$name;
+			}
+			else
+			{
+				$value = '';
+			}
 		}
 		
 		array_push($this->formElements, array(
@@ -107,7 +148,14 @@ class Form extends \Fuel\Core\Form{
 		
 		if (is_object($this->model) === true)
 		{
-			$value = $this->model->$name;
+			if (key_exists($name, $this->model->properties()) === true or isset($this->model->$name))
+			{
+				$value = $this->model->$name;
+			}
+			else
+			{
+				$value = '';
+			}
 		}
 		
 		array_push($this->formElements, array(
@@ -137,6 +185,24 @@ class Form extends \Fuel\Core\Form{
 		));
 	}
 	
+	public function addSingleDropdown($name, $displayName, $options)
+	{
+		$value = null;
+		if (is_object($this->model) === true)
+		{
+			$value = $this->model->$name;
+		}
+		
+		array_push($this->formElements, array(
+			'type'			=>	'select',
+			'name'			=>	$name,
+			'displayName'	=>	$displayName,
+			'value'			=>	$value,
+			'options'		=>	$options,
+			'class'			=>	'',
+		));
+	}
+	
 	public function addRelation($relationObjects, $relationName, $relationProperty, $displayName)
 	{
 		if (is_array($relationObjects) === false)
@@ -146,7 +212,7 @@ class Form extends \Fuel\Core\Form{
 		}
 		
 		$values = array();
-		$value = array();
+		
 		foreach ($relationObjects as $relationObject)
 		{
 			$values[$relationObject->id] = $relationObject->$relationProperty;
@@ -164,14 +230,15 @@ class Form extends \Fuel\Core\Form{
 			switch ($relationType)
 			{
 				case 'Orm\ManyMany':
+					$value = array();
 					foreach ($this->model->$relationName as $manyObject)
 					{
 						$value[$manyObject->id] = $manyObject->$relationProperty;
 					}
 					break;
 				case 'Orm\BelongsTo':
-					echo 'not implemented :(';
-					die;
+					$value = '';
+					$value = $this->model->$relationName->id;
 					break;
 				default;
 					echo 'something is wrong';
@@ -187,8 +254,7 @@ class Form extends \Fuel\Core\Form{
 					die;
 					break;
 				case 'Orm\BelongsTo':
-					//$value[0] 
-					//die;
+					$value = '';
 					break;
 				default;
 					echo 'something is wrong';
@@ -197,7 +263,7 @@ class Form extends \Fuel\Core\Form{
 		}
 		
 		array_push($this->formElements, array(
-			'type'			=> 'select',
+			'type'			=> 'relation',
 			'relationName'			=> $relationName,
 			'relationProperty'	=>	$relationProperty,
 			'displayName'	=> $displayName,
@@ -215,12 +281,11 @@ class Form extends \Fuel\Core\Form{
 	
 	public function generate()
 	{
-		return View::forge('form', $this);
+		return \View::forge('_form', $this);
 	}
 	
 	public function checkPost()
 	{
-		
 		if (Input::method() == 'POST' and empty($_POST) === false and Input::post('form-name') === $this->formName)
 		{
 			try
@@ -250,6 +315,18 @@ class Form extends \Fuel\Core\Form{
 						}
 					}
 					else if ($element['type'] === 'select')
+					{
+						if (isset($element['multiple']) and $element['multiple'] === true)
+						{
+							//ToDO
+						}
+						else
+						{
+							$submitedArray = Input::post($element['name']);
+							$model->$element['name'] = $submitedArray[0];
+						}
+					}
+					else if ($element['type'] === 'relation')
 					{
 						$formName = $element['relationName'] . '_' . $element['relationProperty'];
 						if ($element['relationType'] === 'manymany')
@@ -291,7 +368,6 @@ class Form extends \Fuel\Core\Form{
 						$model->$propertyName = $propertyValue;
 					}
 				}
-				
 				$model->save();
 				
 				if (isset($model->display_name) === true)

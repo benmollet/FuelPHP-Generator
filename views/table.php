@@ -17,16 +17,18 @@ if ($inPanel === true) {
 <div class="panel panel-default">
 <?php if ($tableName !== null) { ?>
     <div class="panel-heading">
-        <h3 class="panel-title"><?php echo $tableDisplayName; ?></h3>
+        <h3 class="panel-title"><?php echo $tableName; ?></h3>
     </div>
-<?php } }
+<?php } ?>
+	<div class="panel-body">
+<?php } 
 	if ($tableClass !== null)
 	{
 		echo '<table style="' . $style . '" class="' .  $tableClass . '" summary="' . $tableName . '">';
 	}
 	else
 	{
-		echo '<table style="' . $style . '" class="table table-condensed table-striped" summary="' . $tableName . '">';
+		echo '<table style="' . $style . '" class="table table-bordered table-condensed table-striped" summary="' . $tableName . '">';
 	}
 		if ($tableHeaders !== null)
 		{
@@ -45,6 +47,7 @@ if ($inPanel === true) {
         <tbody>
             <?php
 			$counter = 0;
+
             foreach ($models as $model)
             {
 				if ($determinePagination === true)
@@ -114,7 +117,9 @@ if ($inPanel === true) {
                     }
                     else
                     {
+						
 						//Assumed to be a property
+						$cellContents = html_entity_decode($cellContents);
 						$properties = explode("->", $cellContents);
 						if (count($properties) !== 1)
 						{
@@ -234,6 +239,7 @@ if ($inPanel === true) {
 </table>
     <?php } ?>
 <?php if ($inPanel === true) { ?>
+	</div>
 </div>
 <?php } ?>
 </div>

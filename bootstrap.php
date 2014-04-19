@@ -7,7 +7,8 @@
  */
 
 Autoloader::add_classes(array(
-	'Form'	=>	__DIR__.'/classes/form.php',
-	'Table'	=>	__DIR__.'/classes/table.php',
-	'Menu'	=>	__DIR__.'/classes/menu.php',
+	'Form'		=>	__DIR__.'/classes/form.php',
+	'Table'		=>	__DIR__.'/classes/table.php',
+	'Menu'		=>	__DIR__.'/classes/menu.php',
+	'HtmlList'	=>	__DIR__.'/classes/list.php',
 ));

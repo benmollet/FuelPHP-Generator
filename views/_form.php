@@ -33,15 +33,15 @@ if (Session::get_flash('error'))
 			}
 			if (\Input::post($formElement['name']) !== null)
 			{
-				echo '<textarea class="form-control" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '>' . \Input::post($formElement['name']) . '</textarea>';
+				echo '<textarea class="form-control ' . Variables::get('texteditor', 'summernote') . '" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '>' . \Input::post($formElement['name']) . '</textarea>';
 			}
 			else if ($formElement['value'] !== '')
 			{
-				echo '<textarea class="form-control" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '">' . $formElement['value'] . '</textarea>';
+				echo '<textarea class="form-control ' . Variables::get('texteditor', 'summernote') . '" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '">' . $formElement['value'] . '</textarea>';
 			}
 			else
 			{
-				echo '<textarea class="form-control" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '"></textarea>';
+				echo '<textarea class="form-control ' . Variables::get('texteditor', 'summernote') . '" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '"></textarea>';
 			}
 		}
 		else if ($formElement['type'] === 'text')
@@ -105,21 +105,60 @@ if (Session::get_flash('error'))
 		else if ($formElement['type'] === 'select')
 		{
 			$multiple = '';
-			if ($formElement['relationType'] === 'Orm\ManyMany')
+			if (isset($formElement['multiple']) and $formElement['multiple'] === true)
 			{
 				$multiple = 'multiple';
 			}
-			echo '<div><label for="' . $formElement['relationName'] . '_' . $formElement['relationProperty'] . '">' . $formElement['displayName'] . '</label></div>';
-			echo '<select ' . $multiple . ' class="col-md-2 chosen-select" name="' . $formElement['relationName'] . '_' . $formElement['relationProperty'] . '[]" id="' . $formElement['relationName'] . '_' . $formElement['relationProperty'] . '">';
+			echo '<div><label for="' . $formElement['name'] . '">' . $formElement['displayName'] . '</label></div>';
+			echo '<select ' . $multiple . ' class="col-md-2 select2-offscreen" name="' . $formElement['name'] . '[]" id="' . $formElement['name'] . '">';
 			foreach ($formElement['options'] as $optionId => $option)
 			{
-				if (key_exists($optionId, $formElement['value']))
+				if ($optionId === $formElement['value'])
 				{
 					echo '<option value="' . $optionId . '" selected="selected">' . $option . '</option>';
 				}
 				else
 				{
 					echo '<option value="' . $optionId . '">' . $option . '</option>';
+				}
+			}
+			echo '</select>';
+		}
+		else if ($formElement['type'] === 'relation')
+		{
+//			\Debug::dump($formElement['options']);
+//					die;
+			$multiple = '';
+			if ($formElement['relationType'] === 'Orm\ManyMany')
+			{
+				$multiple = 'multiple';
+			}
+			echo '<div><label for="' . $formElement['relationName'] . '_' . $formElement['relationProperty'] . '">' . $formElement['displayName'] . '</label></div>';
+			echo '<select ' . $multiple . ' class="col-md-2 select2-offscreen" name="' . $formElement['relationName'] . '_' . $formElement['relationProperty'] . '[]" id="' . $formElement['relationName'] . '_' . $formElement['relationProperty'] . '">';
+			foreach ($formElement['options'] as $optionId => $option)
+			{
+				if ($multiple === 'multiple')
+				{
+					if (key_exists($optionId, $formElement['value']))
+					{
+						echo '<option value="' . $optionId . '" selected="selected">' . $option . '</option>';
+					}
+					else
+					{
+						echo '<option value="' . $optionId . '">' . $option . '</option>';
+					}
+				}
+				else
+				{
+					
+					if ($optionId == $formElement['value'])
+					{
+						echo '<option value="' . $optionId . '" selected="selected">' . $option . '</option>';
+					}
+					else
+					{
+						echo '<option value="' . $optionId . '">' . $option . '</option>';
+					}
 				}
 			}
 			echo '</select>';
@@ -132,5 +171,14 @@ if (Session::get_flash('error'))
 	<?php if ($addBackButton === true) { ?>
 	<a href="<?php echo $backLocation; ?>" type="button" class="btn btn-default"><span class="glyphicon glyphicon-arrow-left" /> Back</a>
 	<?php } ?>
+	<?php 
+	if ($buttons !== null and empty($buttons) === false)
+	{
+		foreach ($buttons as $button)
+		{
+			echo html_entity_decode($button);
+		}
+	}
+	?>
 
 </form>
