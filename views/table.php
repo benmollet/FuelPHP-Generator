@@ -114,8 +114,9 @@ if ($inPanel === true) {
                     }
                     else
                     {
-						//Assumed to be a property
+						$cellContents = html_entity_decode($cellContents);
 						$properties = explode("->", $cellContents);
+						//Assumed to be a property
 						if (count($properties) !== 1)
 						{
 							$endProperty = $model;

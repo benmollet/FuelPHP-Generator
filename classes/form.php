@@ -89,7 +89,6 @@ class Form extends \Fuel\Core\Form{
 		}
 		
 		$this->formElements = array();
-		$this->relationModels = new \stdClass;
 		$this->model = $model;
 		
         return;
@@ -289,16 +288,33 @@ class Form extends \Fuel\Core\Form{
 	{
 		if (Input::method() == 'POST' and empty($_POST) === false and Input::post('form-name') === $this->formName)
 		{
-			if (isset($this->formName) === false and (key_exists('formName', Input::post()) === false) or (isset($this->formName) === true and key_exists('formName', Input::post()) === true and $this->formName === Input::post('formName')))
+			try
 			{
-				try
+				if (is_object($this->model) === true)
 				{
-					if (is_object($this->model) === true)
+					$model = $this->model;
+					$successMessage = 'Edited ';
+				}
+				else
+				{
+					$model = new $this->model();
+					$successMessage = 'Created new ';
+				}
+				
+				foreach ($this->formElements as $element)
+				{
+					if ($element['type'] === 'checkbox')
 					{
-						$model = $this->model;
-						$successMessage = 'Edited ';
+						if (Input::post($element['name']) === null)
+						{
+							$model->$element['name'] = 0;
+						}
+						else
+						{
+							$model->$element['name'] = Input::post($element['name']);
+						}
 					}
-					else
+					else if ($element['type'] === 'select')
 					{
 						if (isset($element['multiple']) and $element['multiple'] === true)
 						{
@@ -315,51 +331,38 @@ class Form extends \Fuel\Core\Form{
 						$formName = $element['relationName'] . '_' . $element['relationProperty'];
 						if ($element['relationType'] === 'manymany')
 						{
-							if (Input::post($element['name']) === null)
+							//check to delete
+							foreach ($this->relationModels as $existingModel)
 							{
-								$model->$element['name'] = 0;
+								if (\Input::post($formName) === null or key_exists($existingModel->id, \Input::post($formName)) === false)
+								{
+									unset($model->{$element['relationName']}[$existingModel->id]);
+								}
 							}
-							else
+							
+							//Add in the new ones
+							foreach (\Input::post($formName) as $selectedId)
 							{
-								$model->$element['name'] = Input::post($element['name']);
+								if (key_exists($selectedId, $model->$element['relationName']) === false)
+								{
+									$model->{$element['relationName']}[$selectedId] = $this->relationModels[$selectedId];
+								}
 							}
 						}
-						else if ($element['type'] === 'select')
+						else
 						{
 							$formName = $element['relationName'] . '_' . $element['relationProperty'];
-							if ($element['relationType'] === 'manymany')
-							{
-								//check to delete
-								foreach ($this->relationModels->$element['relationName'] as $existingModel)
-								{
-									if (\Input::post($formName) === null or key_exists($existingModel->id, \Input::post($formName)) === false)
-									{
-										unset($model->{$element['relationName']}[$existingModel->id]);
-									}
-								}
-
-								//Add in the new ones
-								foreach (\Input::post($formName) as $selectedId)
-								{
-									if (key_exists($selectedId, $model->$element['relationName']) === false)
-									{
-									$model->{$element['relationName']}[$selectedId] = $this->relationModels->{$element['relationName']}[$selectedId];
-									}
-								}
-							}
-							else
-							{
-								$formName = $element['relationName'] . '_' . $element['relationProperty'];
-								$relationId = $element['relationName'] . '_id';
-								$model->$relationId  = \Input::post($formName);
-							}
-						}
-						else 
-						{
-							$model->$element['name'] = Input::post($element['name']);
+							$relationId = $element['relationName'] . '_id';
+							$model->$relationId  = \Input::post($formName);
 						}
 					}
-
+					else 
+					{
+						$model->$element['name'] = Input::post($element['name']);
+					}
+				}
+				if ($this->modelProperties !== null and empty($this->modelProperties) === false)
+				{
 					foreach ($this->modelProperties as $propertyName => $propertyValue)
 					{
 						$model->$propertyName = $propertyValue;
@@ -385,14 +388,10 @@ class Form extends \Fuel\Core\Form{
 				$errors = Session::get_flash('errors');
 				if (is_array($errors) === false)
 				{
-					$errors = Session::get_flash('errors');
-					if (is_array($errors) === false)
-					{
-						$errors = array();
-					}
-					array_push($errors, $ex->getMessage());
-					Session::set_flash('error', $errors);
+					$errors = array();
 				}
+				array_push($errors, $ex->getMessage());
+				Session::set_flash('error', $errors);
 			}
 			
 			return;

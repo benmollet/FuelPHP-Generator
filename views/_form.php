@@ -126,8 +126,6 @@ if (Session::get_flash('error'))
 		}
 		else if ($formElement['type'] === 'relation')
 		{
-//			\Debug::dump($formElement['options']);
-//					die;
 			$multiple = '';
 			if ($formElement['relationType'] === 'Orm\ManyMany')
 			{
