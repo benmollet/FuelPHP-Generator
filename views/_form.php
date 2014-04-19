@@ -15,9 +15,9 @@ if (Session::get_flash('error'))
 	}
 }
 ?>
-<form <?php echo $ajax === true ? 'class="ajax-form"' : ''; ?> action="<?php echo $submitUrl; ?>" role="form" method="post" data-name="test">
-	<?php if ($formName !== null) { ?>
-	<input type="hidden" name="form-name" value="<?php echo $formName; ?>">
+<form <?php echo $ajax === true ? 'class="ajax-form"' : ''; ?> action="<?php echo $submitUrl; ?>" role="form" method="post">
+	<?php if (isset($formName) === true) { ?>
+	<input type="hidden" name="formName" value="<?php echo $formName; ?>">
 	<?php } if ($redirectLocation !== null) { ?>
 	<input type="hidden" name="redirect-location" value="<?php echo $redirectLocation; ?>">
 	<?php }
