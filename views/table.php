@@ -34,7 +34,15 @@ if ($inPanel === true) {
 			echo '<tr>';
 			foreach ($tableHeaders as $tableHeader)
 			{
-				echo '<th>';
+				if (isset($sortable) === true and $sortable === true)
+				{
+					echo '<th class="sorting">';
+				}
+				else
+				{
+					echo '<th>';
+				}
+				
 				echo $tableHeader;
 				echo '</th>';
 			}
@@ -55,6 +63,7 @@ if ($inPanel === true) {
 						continue;
 					}
 				}
+				
                 echo '<tr>';
                 foreach ($rowContent as $cellContents)
                 {

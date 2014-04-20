@@ -8,15 +8,16 @@
 
 class Table
 {
-    public $tableName;
-	public $tableDisplayName;
+	public $modelCount;
 	public $models;
 	public $modelName;
-	public $modelCount;
-    public $rowContent;
-	public $tableHeaders;
 	public $page;
 	public $paginationType;
+	public $rowContent;
+	public $sortable;
+	public $tableDisplayName;
+	public $tableHeaders;
+    public $tableName;
 	public $urlSuffix;
     
     public function __construct($models, $properties)
@@ -45,10 +46,6 @@ class Table
 			$this->tableClass = 'table';
 		}
 		
-		if (key_exists('tableClass', $properties) === true)
-		{
-			$this->tableClass = $properties['tableClass'];
-		}
 		
 		if (key_exists('inPanel', $properties) === true)
 		{
@@ -57,6 +54,16 @@ class Table
 		else
 		{
 			$this->inPanel = false;
+		}
+		
+		if (key_exists('sortable', $properties) === true)
+		{
+			$this->sortable = $properties['sortable'];
+			$this->tableClass .= ' dataTable';
+		}
+		else
+		{
+			$this->sortable = false;
 		}
 		
 		if (key_exists('page', $properties) === true and $properties['page'] !== null)
