@@ -32,11 +32,12 @@ if ($inPanel === true) {
 		{
 			echo '<thead>';
 			echo '<tr>';
+			$counter = 0;
 			foreach ($tableHeaders as $tableHeader)
 			{
-				if (isset($sortable) === true and $sortable === true)
+				if (isset($sortable) === true and $sortable === true and is_array($rowContent[$counter]) === false)
 				{
-					echo '<th class="sorting">';
+					echo '<th class="sorting" data-attribute="' . $rowContent[$counter] . '">';
 				}
 				else
 				{
@@ -45,6 +46,7 @@ if ($inPanel === true) {
 				
 				echo $tableHeader;
 				echo '</th>';
+				$counter++;
 			}
 			echo '</tr>';
 			echo '</thead>';
