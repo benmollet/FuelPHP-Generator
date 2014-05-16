@@ -112,6 +112,18 @@ if ($inPanel === true) {
 						{
 							echo $cellContents['text'];
 						}
+						else if (key_exists('list', $cellContents) === true)
+						{
+							$list = '';
+							foreach ($model->$cellContents['list'] as $element)
+							{
+								$list .= $element->$cellContents['listProperty'] . ', ';
+							}
+							$list = rtrim($list);
+							$list = rtrim($list, ',');
+							
+							echo $list;
+						}
 						else
 						{
 							echo 'Text not specified';
