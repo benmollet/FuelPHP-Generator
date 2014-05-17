@@ -58,8 +58,8 @@ class Table
 		
 		if (key_exists('sortable', $properties) === true)
 		{
-			$this->sortable = $properties['sortable'];
 			$this->tableClass .= ' dataTable';
+			$this->sortable = $properties['sortable'];
 		}
 		else
 		{
@@ -115,10 +115,46 @@ class Table
 			$modelName = $models;
 			$this->modelCount = $modelName::count();
 			
-			$this->models = $modelName::query()
+			if (\Input::get($this->tableName . '-sort-by') !== null)
+			{
+				$this->sortBy = \Input::get($this->tableName . '-sort-by');
+				
+				$sortBy = \Input::get($this->tableName . '-sort-by');
+				$sortBy = str_replace('->', '.', $sortBy);
+				$related = explode('.', $sortBy);
+				array_pop($related);
+				
+				if (\Input::get($this->tableName . '-sort-direction') !== null)
+				{
+					
+					$this->models = $modelName::query()
+						->rows_offset(($this->rowsLimit * $this->page) - $this->rowsLimit)
+						->rows_limit($this->rowsLimit)
+						->related($related)
+						->order_by($sortBy, \Input::get($this->tableName . '-sort-direction'))
+						->get();
+					$this->sortDirection = \Input::get($this->tableName . '-sort-direction');
+				}
+				else
+				{
+					$this->models = $modelName::query()
+						->rows_offset(($this->rowsLimit * $this->page) - $this->rowsLimit)
+						->rows_limit($this->rowsLimit)
+						->related($related)
+						->order_by($sortBy)
+						->get();
+					$this->sortDirection = 'desc';
+				}
+			}
+			else
+			{
+				$this->models = $modelName::query()
 					->rows_offset(($this->rowsLimit * $this->page) - $this->rowsLimit)
 					->rows_limit($this->rowsLimit)
 					->get();
+			}
+			
+			
 			$this->pageCount = ceil($this->modelCount / $this->rowsLimit);
 			$this->pageStart = ($this->rowsLimit * $this->page) - $this->rowsLimit;
 			$this->pageEnd = $this->rowsLimit * $this->page;

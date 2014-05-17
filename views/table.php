@@ -28,30 +28,56 @@ if ($inPanel === true) {
 	{
 		echo '<table style="' . $style . '" class="table table-condensed table-striped" summary="' . $tableName . '">';
 	}
-		if ($tableHeaders !== null)
+	if ($tableHeaders !== null)
+	{
+		echo '<thead>';
+		echo '<tr>';
+		$counter = 0;
+		foreach ($tableHeaders as $tableHeader)
 		{
-			echo '<thead>';
-			echo '<tr>';
-			$counter = 0;
-			foreach ($tableHeaders as $tableHeader)
+			if (isset($sortable) === true and $sortable === true and (is_array($rowContent[$counter]) === false or key_exists('timestamp', $rowContent[$counter]) and $rowContent[$counter]['timestamp'] === true))
 			{
-				if (isset($sortable) === true and $sortable === true and is_array($rowContent[$counter]) === false)
+				if (is_array($rowContent[$counter]) === true)
 				{
-					echo '<th class="sorting" data-attribute="' . $rowContent[$counter] . '">';
+					$attribute = $rowContent[$counter]['property'];
 				}
 				else
 				{
-					echo '<th>';
+					$attribute = $rowContent[$counter];
 				}
 				
-				echo $tableHeader;
-				echo '</th>';
-				$counter++;
+				if (isset($sortBy) === false or isset($sortDirection) === false)
+				{
+					echo '<th class="sorting" data-attribute="' . $attribute . '" data-direction="asc">';
+				}
+				else if ($attribute === $sortBy and $sortDirection === 'desc')
+				{
+
+					echo '<th class="sorting_desc" data-attribute="' . $attribute . '" data-direction="asc">';
+				}
+				else if ($attribute === $sortBy)
+				{
+					echo '<th class="sorting_asc" data-attribute="' . $attribute . '" data-direction="desc">';
+				}
+				else
+				{
+					echo '<th class="sorting" data-attribute="' . $attribute . '" data-direction="desc">';
+				}
+
 			}
-			echo '</tr>';
-			echo '</thead>';
+			else
+			{
+				echo '<th>';
+			}
+
+			echo $tableHeader;
+			echo '</th>';
+			$counter++;
 		}
-		?>
+		echo '</tr>';
+		echo '</thead>';
+	}
+	?>
         <tbody>
             <?php
 			$counter = 0;
@@ -261,3 +287,48 @@ if ($inPanel === true) {
 </div>
 <?php } ?>
 </div>
+<script>
+	$('th.sorting, th.sorting_desc, th.sorting_asc').click(function(e){
+		<?php
+			$getParameters = \Input::get();
+
+			if ($paginationUrl === null)
+			{
+				$paginationUrl = Uri::current();
+			}
+
+			$var = '?';
+			$counter = 1;
+			foreach ($getParameters as $getParamaterIndex => $getParamater)
+			{
+				if ($getParamater === '')
+				{
+					continue;
+				}
+				if ($getParamaterIndex === $tableName . '-sort-by' or $getParamaterIndex === $tableName . '-sort-direction')
+				{
+					continue;
+				}
+
+				if (substr($var, -1) === '?')
+				{
+					$var .= $getParamaterIndex . '=' . $getParamater . '&';
+				}
+				else
+				{
+					$var .= $getParamaterIndex . '=' . $getParamater . '&';
+				}
+			}
+		?>
+		navigateTable('<?php echo \Uri::current() . $var ?>' + '<?php echo $tableName; ?>-sort-by=' + e.target.dataset.attribute + '&<?php echo $tableName; ?>-sort-direction=' + e.target.dataset.direction, e);
+	});
+	
+	if (typeof navigateTable === 'undefined')
+	{
+			navigateTable = function (url, event){
+				window.location = url;
+			}
+	}
+	
+
+</script>
