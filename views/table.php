@@ -189,10 +189,10 @@ if ($inPanel === true) {
                 echo '</tr>';
 				$counter++;
             }
-            ?>
+            
+			if ($rowsLimit !== null and $pageCount > 1) { ?>
 		<tr>
 			<td colspan="<?php echo count($rowContent); ?>">
-				<?php if ($rowsLimit !== null){ ?>
 				<ul style="margin: 0" class="pagination">
 					<?php
 					$getParameters = \Input::get();
