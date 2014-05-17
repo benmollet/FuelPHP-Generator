@@ -334,7 +334,7 @@ class Form extends \Fuel\Core\Form{
 							//check to delete
 							foreach ($this->relationModels as $existingModel)
 							{
-								if (\Input::post($formName) === null or key_exists($existingModel->id, \Input::post($formName)) === false)
+								if (\Input::post($formName) === null or key_exists($existingModel->id, array_flip(\Input::post($formName))) === false)
 								{
 									unset($model->{$element['relationName']}[$existingModel->id]);
 								}
