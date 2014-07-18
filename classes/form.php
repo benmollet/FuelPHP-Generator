@@ -2,15 +2,12 @@
 
 class Form extends \Fuel\Core\Form
 {
-	protected $formElements = array();
-	protected $openCondition;
 	protected $preset = 'default';
+	public $fieldset;
 	
-	public function __construct($openCondition = null, $formAttributes = array())
+	public function __construct($fieldsetName = 'default', $formAttributes = array())
 	{
 		\Config::load('form', true);
-		
-		$this->openCondition = $openCondition;
 		
 		if (isset($formAttributes) === true)
 		{
@@ -19,142 +16,177 @@ class Form extends \Fuel\Core\Form
 					$this->$formAttributeName = $formAttributeValue;
 			}
 		}
-	}
-	
-	public function addInput($field, $value = null, $attributes = array())
-	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.inputAttributes', array());
-		}
+		$this->fieldset = Fieldset::forge($fieldsetName);
 		
-		$this->formElements[] = Form::input($field, $value, $attributes);
+		$this->fieldset->set_config('form_template', View::forge('generator/template/form/' . $this->preset . '/form'));
+		$this->fieldset->set_config('field_template', View::forge('generator/template/form/' . $this->preset . '/field'));
+		$this->fieldset->set_config('multi_field_template', View::forge('generator/template/form/' . $this->preset . '/multi_field'));
+		$this->fieldset->set_config('group_label', View::forge('generator/template/form/' . $this->preset . '/group_label'));
 	}
 	
-	public function addButton($field, $value = null, $attributes = array())
+	public function addInput($field, $label = null, $attributes = array())
 	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.buttonAttributes', array());
-		}
+		$attributes = $this->getAttributes('input', $attributes);
 		
-		$this->formElements[] = Form::button($field, $value, $attributes);
+		$this->fieldset->add($field, $label, $attributes);
 	}
 	
-	public function addHidden($field, $value = null, $attributes = array())
+	public function addButton($field, $label = null, $attributes = array())
 	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.hiddenAttributes', array());
-		}
+		$attributes = $this->getAttributes('button', $attributes);
 		
-		$this->formElements[] = Form::hidden($field, $value, $attributes);
+		$attributes['type'] = 'button';
+		
+		$this->fieldset->add($field, $label, $attributes);
 	}
 	
-	public function addPassword($field, $value = null, $attributes = array())
+	public function addHidden($field, $label = '', $attributes = array())
 	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.passwordAttributes', array());
-		}
+		$attributes = $this->getAttributes('hidden', $attributes);
 		
-		$this->formElements[] = Form::password($field, $value, $attributes);
+		$attributes['type'] = 'hidden';
+		
+		$this->fieldset->add($field, $label, $attributes);
 	}
 	
-	public function addRadio($field, $value = null, $checked = null, $attributes = array())
+	public function addPassword($field, $label = '', $attributes = array())
+	{
+		$attributes = $this->getAttributes('password', $attributes);
+		
+		$attributes['type'] = 'password';
+		
+		$this->fieldset->add($field, $label, $attributes);
+	}
+	
+	public function addRadios($field, $options, $label = '', $checked = null, $attributes = array())
 	{
 		if ($attributes === array())
 		{
 			$attributes = \Config::get('form.' . $this->preset . '.radioAttributes', array());
 		}
 		
-		$this->formElements[] = Form::radio($field, $value, $checked, $attributes);
+		$attributes['type'] = 'radio';
+		$attributes['options'] = $options;
+		
+		$this->fieldset->add($field, $label, $attributes);
+		$this->fieldset->field($field)->set_template(View::forge('generator/template/form/' . $this->preset . '/radios_field'));
+		
 	}
 	
-	public function addCheckbox($field, $value = null, $checked = null, $attributes = array())
+	public function addCheckboxes($field, $options, $label = '', $checked = false, $attributes = array())
 	{
 		if ($attributes === array())
 		{
 			$attributes = \Config::get('form.' . $this->preset . '.checkboxAttributes', array());
 		}
 		
-		$this->formElements[] = Form::checkbox($field, $value, $checked, $attributes);
+		$attributes['type'] = 'checkbox';
+		$attributes['options'] = $options;
+		
+		$this->fieldset->add($field, $label, $attributes);
+		$this->fieldset->field($field)->set_template(View::forge('generator/template/form/' . $this->preset . '/checkboxes_field'));
+		
 	}
 	
 	public function addFile($field, $attributes = array())
 	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.fileAttributes', array());
-		}
+		$attributes = $this->getAttributes('file', $attributes);
 		
-		$this->formElements[] = Form::checkbox($field, $attributes);
+		$attributes['type'] = 'file';
+		
+		$this->fieldset->add($field, $label, $attributes);
 	}
 	
-	public function addReset($field, $value = null, $attributes = array())
+	public function addReset($field, $value = 'Reset', $attributes = array())
 	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.resetAttributes', array());
-		}
+		$attributes = $this->getAttributes('reset', $attributes);
 		
-		$this->formElements[] = Form::reset($field, $value, $attributes);
+		$attributes['type'] = 'reset';
+		$attributes['value'] = $value;
+		
+		$this->fieldset->add($field, '', $attributes);
 	}
 	
-	public function addSubmit($field, $value = null, $attributes = array())
+	public function addSubmit($field, $value = 'Submit', $attributes = array())
 	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.submitAttributes', array());
-		}
+		$attributes = $this->getAttributes('submit', $attributes);
 		
-		$this->formElements[] = Form::submit($field, $value, $attributes);
+		$attributes['type'] = 'submit';
+		$attributes['value'] = $value;
+		
+		$this->fieldset->add($field, '', $attributes);
 	}
 	
-	public function addTextarea($field, $value = null, $attributes = array())
+	public function addTextarea($field, $label = '', $attributes = array())
 	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.textareaAttributes', array());
-		}
+		$attributes = $this->getAttributes('textarea', $attributes);
 		
-		$this->formElements[] = Form::textarea($field, $value, $attributes);
+		$attributes['type'] = 'textarea';
+		
+		$this->fieldset->add($field, $label, $attributes);
 	}
 	
-	public function addSelect($field, $values = null, $options = array(), $attributes = array())
+	public function addSelect($field, $label = '', $values = array(), $options = array(), $attributes = array())
 	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.selectAttributes', array());
-		}
+		$attributes = $this->getAttributes('select', $attributes);
 		
-		$this->formElements[] = Form::select($field, $values, $options, $attributes);
+		$attributes['type'] = 'select';
+		$attributes['value'] = $values;
+		$attributes['options'] = $options;
+		
+		$this->fieldset->add($field, $label, $attributes);
 	}
 	
-	public function addLabel($label, $id = null, $attributes = array())
+	public function addMultiSelect($field, $label = '', $values = array(), $options = array(), $attributes = array())
 	{
-		if ($attributes === array())
-		{
-			$attributes = \Config::get('form.' . $this->preset . '.labelAttributes', array());
-		}
+		$attributes = $this->getAttributes('multiSelect', $attributes);
 		
-		$this->formElements[] = Form::label($label, $id, $attributes);
+		$attributes['type'] = 'select';
+		$attributes['value'] = $values;
+		$attributes['options'] = $options;
+		$attributes['multiple'] = 'multiple';
+		
+		$this->fieldset->add($field, $label, $attributes);
 	}
+	
+	//Maybe add later?
+//	public function addLabel($label, $id = null, $attributes = array())
+//	{
+//		$attributes = $this->getAttributes('label', $attributes);
+//		
+//		$this->formElements[] = Form::label($label, $id, $attributes);
+//	}
 	
 	public function generate()
 	{
 		//Add a submit button if set in the config file
-		if (\Config::get('form.' . $this->preset . '.addSubmit') !== null)
+//		if (\Config::get('form.' . $this->preset . '.addSubmit') !== null)
+//		{
+//			$submitField = \Config::get('form.' . $this->preset . '.addSubmit.field');
+//			$submitValue = \Config::get('form.' . $this->preset . '.addSubmit.value');
+//			$submitAttributes = \Config::get('form.' . $this->preset . '.addSubmit.attributes', array());
+//			$this->formElements[] = $this->addSubmit($submitField, $submitValue, $submitAttributes);
+//		}
+		
+		//$data['openCondition'] = $this->openCondition;
+		//$data['formElements'] = $this->formElements;
+		
+		//return View::forge('_form', $data, false);
+		return $this->fieldset->build();
+	}
+	
+	protected function getAttributes($type, $setAttributes)
+	{
+		$configAttributes = \Config::get('form.' . $this->preset . '.' . $type . 'Attributes', array());
+		
+		foreach ($configAttributes as $configAttributeName => $configAttribute)
 		{
-			$submitField = \Config::get('form.' . $this->preset . '.addSubmit.field');
-			$submitValue = \Config::get('form.' . $this->preset . '.addSubmit.value');
-			$submitAttributes = \Config::get('form.' . $this->preset . '.addSubmit.attributes', array());
-			$this->formElements[] = $this->addSubmit($submitField, $submitValue, $submitAttributes);
+			if (isset($setAttributes[$configAttributeName]) === false)
+			{
+				$setAttributes[$configAttributeName] = $configAttribute;
+			}
 		}
 		
-		$data['openCondition'] = $this->openCondition;
-		$data['formElements'] = $this->formElements;
-		
-		return View::forge('_form', $data, false);
+		return $setAttributes;
 	}
 }

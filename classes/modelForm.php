@@ -6,108 +6,110 @@
  * and open the template in the editor.
  */
 
-class ModelForm
+class ModelForm extends Form
 {
-	public $form;
+	protected $form;
 	protected $model;
 	protected $modelProperties;
 	protected $modelPropertiesDefaults;
+	protected $preset = 'default';
+	public $fieldset;
 	
-	public function __construct($model, $openCondition = null, $formAttributes = array())
+	public function __construct($model, $formAttributes = array(), $fieldsetName = 'default')
 	{
-		$this->form = new Form($openCondition, $formAttributes);
+		$this->form = new Form($fieldsetName, $formAttributes);
+		$this->fieldset = $this->form->fieldset;
 		$this->model = $model;
-		
 	}
 	
-	public function addInput($modelProperty, $attributes = array())
-	{
-		$value = $this->_getProperty($modelProperty);
-		$this->modelProperties[] = $modelProperty;
-		
-		$this->form->addInput($modelProperty, $value, $attributes);
-	}
-	
-	public function addHidden($modelProperty, $attributes = array())
-	{
-		$value = $this->_getProperty($modelProperty);
-		$this->modelProperties[] = $modelProperty;
-		
-		$this->form->addHidden($modelProperty, $value, $attributes);
-	}
-	
-	public function addPassword($modelProperty, $attributes = array())
-	{
-		$value = $this->_getProperty($modelProperty);
-		$this->modelProperties[] = $modelProperty;
-		
-		$this->form->addPassword($modelProperty, $value, $attributes);
-	}
-	
-	public function addRadio($modelProperty, $options, $defaultOption = null, $attributes = array(), $labelAttributes = array())
-	{
-		$value = $this->_getProperty($modelProperty);
-		
-		foreach ($options as $option => $optionName)
-		{
-			$this->form->addLabel($option, $modelProperty, $labelAttributes);
-			
-			if ($value !== null and $value === $option)
-			{
-				$this->form->addRadio($modelProperty, $option, true, $attributes);
-			}
-			else
-			{
-				$this->form->addRadio($modelProperty, $option, false, $attributes);
-			}
-		}
-		
-		$this->modelProperties[] = $modelProperty;
-		$this->modelPropertiesDefaults[$modelProperty] = $defaultOption;
-	}
-	
-	public function addCheckbox($modelProperty, $options, $defaultOption = null, $attributes = array(), $labelAttributes = array())
-	{
-		$value = $this->_getProperty($modelProperty);
-		
-		foreach ($options as $option => $optionName)
-		{
-			$this->form->addLabel($optionName, $modelProperty, $labelAttributes);
-			
-			if ($value !== null and $value === $option)
-			{
-				$this->form->addCheckbox($modelProperty, $option, true, $attributes);
-			}
-			else
-			{
-				$this->form->addCheckbox($modelProperty, $option, false, $attributes);
-			}
-		}
-		
-		$this->modelProperties[] = $modelProperty;
-		$this->modelPropertiesDefaults[$modelProperty] = $defaultOption;
-	}
-	
-	public function addTextarea($modelProperty, $attributes = array())
-	{
-		$value = $this->_getProperty($modelProperty);
-		$this->modelProperties[] = $modelProperty;
-		
-		$this->form->addTextarea($modelProperty, $value, $attributes);
-	}
-	
-	public function addSelect($modelProperty, $values = null, $options = array(), $attributes = array()) 
-	{
-		$value = $this->_getProperty($modelProperty);
-		$this->modelProperties[] = $modelProperty;
-		
-		$this->form->addSelect($modelProperty, $values, $options, $attributes);
-	}
-	
-	public function addLabel($label, $id = null, $attributes = array())
-	{
-		$this->form->addLabel($label, $id, $attributes);
-	}
+//	public function addInput($modelProperty, $attributes = array())
+//	{
+//		$value = $this->_getProperty($modelProperty);
+//		$this->modelProperties[] = $modelProperty;
+//		
+//		$this->form->addInput($modelProperty, $value, $attributes);
+//	}
+//	
+//	public function addHidden($modelProperty, $attributes = array())
+//	{
+//		$value = $this->_getProperty($modelProperty);
+//		$this->modelProperties[] = $modelProperty;
+//		
+//		$this->form->addHidden($modelProperty, $value, $attributes);
+//	}
+//	
+//	public function addPassword($modelProperty, $attributes = array())
+//	{
+//		$value = $this->_getProperty($modelProperty);
+//		$this->modelProperties[] = $modelProperty;
+//		
+//		$this->form->addPassword($modelProperty, $value, $attributes);
+//	}
+//	
+//	public function addRadio($modelProperty, $options, $defaultOption = null, $attributes = array(), $labelAttributes = array())
+//	{
+//		$value = $this->_getProperty($modelProperty);
+//		
+//		foreach ($options as $option => $optionName)
+//		{
+//			$this->form->addLabel($option, $modelProperty, $labelAttributes);
+//			
+//			if ($value !== null and $value === $option)
+//			{
+//				$this->form->addRadio($modelProperty, $option, true, $attributes);
+//			}
+//			else
+//			{
+//				$this->form->addRadio($modelProperty, $option, false, $attributes);
+//			}
+//		}
+//		
+//		$this->modelProperties[] = $modelProperty;
+//		$this->modelPropertiesDefaults[$modelProperty] = $defaultOption;
+//	}
+//	
+//	public function addCheckbox($modelProperty, $options, $defaultOption = null, $attributes = array(), $labelAttributes = array())
+//	{
+//		$value = $this->_getProperty($modelProperty);
+//		
+//		foreach ($options as $option => $optionName)
+//		{
+//			$this->form->addLabel($optionName, $modelProperty, $labelAttributes);
+//			
+//			if ($value !== null and $value === $option)
+//			{
+//				$this->form->addCheckbox($modelProperty, $option, true, $attributes);
+//			}
+//			else
+//			{
+//				$this->form->addCheckbox($modelProperty, $option, false, $attributes);
+//			}
+//		}
+//		
+//		$this->modelProperties[] = $modelProperty;
+//		$this->modelPropertiesDefaults[$modelProperty] = $defaultOption;
+//	}
+//	
+//	public function addTextarea($modelProperty, $attributes = array())
+//	{
+//		$value = $this->_getProperty($modelProperty);
+//		$this->modelProperties[] = $modelProperty;
+//		
+//		$this->form->addTextarea($modelProperty, $value, $attributes);
+//	}
+//	
+//	public function addSelect($modelProperty, $values = null, $options = array(), $attributes = array()) 
+//	{
+//		$value = $this->_getProperty($modelProperty);
+//		$this->modelProperties[] = $modelProperty;
+//		
+//		$this->form->addSelect($modelProperty, $values, $options, $attributes);
+//	}
+//	
+//	public function addLabel($label, $id = null, $attributes = array())
+//	{
+//		$this->form->addLabel($label, $id, $attributes);
+//	}
 	
 	public function generate()
 	{
@@ -142,7 +144,13 @@ class ModelForm
 			$model->save();
 			
 		}
+		
 		return $this->form->generate();
+	}
+	
+	public function populate()
+	{
+		$this->fieldset->populate($this->model);
 	}
 	
 	private function _getProperty($modelProperty)

@@ -8,10 +8,11 @@
 
 class ModelTable
 {
+	protected $columns = array();
 	protected $currentPage;
 	protected $models;
 	protected $model;
-	protected $properties;
+	//protected $properties;
 	protected $rowsLimit;
 	protected $sortable;
 	protected $tableName;
@@ -80,10 +81,11 @@ class ModelTable
 		if (is_array($inputParameter) === true)
 		{
 			$this->models = $inputParameter;
+			$this->modelCount = count($this->models);
 			
 			$this->pageCount = ceil($this->modelCount / $this->rowsLimit);
-			$this->pageStart = ($this->rowsLimit * $this->page) - $this->rowsLimit;
-			$this->pageEnd = $this->rowsLimit * $this->page;
+			$this->pageStart = ($this->rowsLimit * $this->currentPage) - $this->rowsLimit;
+			$this->pageEnd = $this->rowsLimit * $this->currentPage;
 		}
 		else
 		{
@@ -136,175 +138,192 @@ class ModelTable
 		}
 	}
 	
-	public function addTimestamp($property, $displayName = null)
+	public function addTimestamp($modelProperty, $columnName = null)
 	{
-		if ($displayName == null)
+		if ($columnName == null)
 		{
-			$displayName = $property;
+			$columnName = $modelProperty;
 		}
 		
-		$newProperty['type'] = 'timestamp';
-		$newProperty['property'] = $property;
+		$newColumn['type'] = 'timestamp';
+		$newColumn['modelProperty'] = $modelProperty;
 		
-		$this->properties[$displayName] = $newProperty;
+		$this->columns[$columnName] = $newColumn;
 	}
 	
-	public function addLink($text, $href, $property = null, $displayName = null, $options = null)
+	public function addLink($href, $text, $textModelProperty = null, $linkModelProperty = null, $columnName = null, $options = null)
 	{
-		if ($displayName == null)
+		if ($columnName == null)
 		{
-			$displayName = $text;
+			if ($text === '' and $linkModelProperty !== null)
+			{
+				$columnName = $linkModelProperty;
+			}
+			else
+			{
+				$columnName = $text;
+			}
 		}
 		
-		$newProperty['type'] = 'link';
-		$newProperty['text'] = $text;
-		$newProperty['href'] = $href;
-		$newProperty['property'] = $property;
-		$newProperty['options'] = $options;
-		$this->properties[$displayName] = $newProperty;
+		$newColumn['type'] = 'link';
+		$newColumn['text'] = $text;
+		$newColumn['href'] = $href;
+		$newColumn['textModelProperty'] = $textModelProperty;
+		$newColumn['linkModelProperty'] = $linkModelProperty;
+		$newColumn['options'] = $options;
+		$this->columns[$columnName] = $newColumn;
 	}
 	
-	public function addProperty($property, $displayName = null)
+	public function addProperty($property, $columnName = null)
 	{
-		if ($displayName === null)
+		if ($columnName === null)
 		{
-			$displayName = $property;
+			$columnName = $property;
 		}
 		
-		$this->properties[$displayName] = $property;
+		$this->columns[$columnName] = $property;
 	}
 	
-	public function generate()
+	public function build()
 	{
 		$columns = array();
 		$rows = array();
 		
-		foreach ($this->properties as $propertyDisplayName => $property)
+		if (isset($this->columns) === true)
 		{
-			$column = array();
-			if (is_array($property) === true)
+			foreach ($this->columns as $columnName => $column)
 			{
-				if (key_exists('property', $property) === true and is_array($property['property']) === false)
+				$column = array();
+				if (is_array($column) === true)
 				{
-					$column['attributes']['attribute'] = $property['property'];
-					$column['attributes']['direction'] = 'asc';
-				}
-			}
-			else 
-			{
-				$column['attributes']['attribute'] = $property;
-				$column['attributes']['direction'] = 'asc';
-			}
-			$column['text'] = $propertyDisplayName;
-			
-			if (isset($this->sortable) === true and $this->sortable === true)
-			{
-				$sortBy = null;
-				$sortDirectionClass = '';
-				if (is_array($property) === true)
-				{
-					if (key_exists('property', $property) === true and is_array($property['property']) === false)
+					if (key_exists('property', $column) === true and is_array($column['property']) === false)
 					{
-						$sortDirectionClass = 'sorting';
-						$sortBy = $property['property'];
-					}
-					else if (key_exists('sortBy', $property))
-					{
-						$sortDirectionClass = 'sorting';
-						$sortBy = $property['sortBy'];
-					}
-				}
-				else
-				{
-					$sortDirectionClass = 'sorting';
-					$sortBy = $property;
-				}
-				
-				$sortByInput = \Input::get($this->tableName . '-sort-by');
-				$sortDirection = \Input::get($this->tableName . '-sort-direction');
-				
-				
-				if ($sortBy !== null and $sortBy === $sortByInput)
-				{
-					
-						
-					if ($sortDirection !== null)
-					{
-						$sortDirectionClass .= '_' . $sortDirection;
-						$column['attributes']['direction'] = $sortDirection;
-					}
-					else 
-					{
-						$sortDirectionClass .= '_' . 'asc';
+						$column['attributes']['attribute'] = $column['property'];
 						$column['attributes']['direction'] = 'asc';
 					}
 				}
-				
-				
-				if (isset($coulumn['class']) === false or $column['class'] === '')
+				else 
 				{
-					$column['class'] = $sortDirectionClass;
+					$column['attributes']['attribute'] = $property;
+					$column['attributes']['direction'] = 'asc';
 				}
-				else
+				$column['text'] = $columnName;
+
+				if (isset($this->sortable) === true and $this->sortable === true)
 				{
-					$column['class'] .= ' ' . $sortDirectionClass;
+					$sortBy = null;
+					$sortDirectionClass = '';
+					if (is_array($column) === true)
+					{
+						if (key_exists('property', $column) === true and is_array($column['property']) === false)
+						{
+							$sortDirectionClass = 'sorting';
+							$sortBy = $column['property'];
+						}
+						else if (key_exists('sortBy', $column))
+						{
+							$sortDirectionClass = 'sorting';
+							$sortBy = $column['sortBy'];
+						}
+					}
+					else
+					{
+						$sortDirectionClass = 'sorting';
+						$sortBy = $column;
+					}
+
+					$sortByInput = \Input::get($this->tableName . '-sort-by');
+					$sortDirection = \Input::get($this->tableName . '-sort-direction');
+
+
+					if ($sortBy !== null and $sortBy === $sortByInput)
+					{
+						if ($sortDirection !== null)
+						{
+							$sortDirectionClass .= '_' . $sortDirection;
+							$column['attributes']['direction'] = $sortDirection;
+						}
+						else 
+						{
+							$sortDirectionClass .= '_' . 'asc';
+							$column['attributes']['direction'] = 'asc';
+						}
+					}
+
+
+					if (isset($coulumn['class']) === false or $column['class'] === '')
+					{
+						$column['class'] = $sortDirectionClass;
+					}
+					else
+					{
+						$column['class'] .= ' ' . $sortDirectionClass;
+					}
 				}
+
+				$columns[] = $column;
 			}
-			
-			$columns[] = $column;
 		}
 		
 		foreach ($this->models as $model)
 		{
 			$row = array();
-			
-			foreach ($this->properties as $propertyDisplayName => $property)
+			if (isset($this->columns) === true)
 			{
-				if (is_array($property) === true)
+				foreach ($this->columns as $columnName => $column)
 				{
-					if ($property['type'] === 'link')
+					if (is_array($column) === true)
 					{
-						$linkClass = '';
-						$linkStyle = '';
-						if (key_exists('options', $property) === true and $property['options'] !== null)
+						if ($column['type'] === 'link')
 						{
-							if (key_exists('class', $property['options']) === true and $property['options']['class'] !== '')
+							$linkClass = '';
+							$linkStyle = '';
+							if (key_exists('options', $column) === true and $column['options'] !== null)
 							{
-								$linkClass = ' class="' . $property['options']['class'] . '"';
+								if (key_exists('class', $column['options']) === true and $column['options']['class'] !== '')
+								{
+									$linkClass = ' class="' . $column['options']['class'] . '"';
+								}
+
+								if (key_exists('style', $column['options']) === true and $column['options']['style'] !== '')
+								{
+									$linkClass = ' style="' . $column['options']['style'] . '"';
+								}
+							}
+
+							if ($linkClass === '')
+							{
+								if (\Config::get('modelTable.' . $this->preset . '.link.class') !== null)
+								{
+									$linkClass = ' class="' . \Config::get('modelTable.' . $this->preset . '.link.class') . '"';
+								}
+							}
+
+							if ($linkStyle === '')
+							{
+								if (\Config::get('modelTable.' . $this->preset . '.link.style') !== null)
+								{
+									$linkStyle = ' style="' . \Config::get('modelTable.' . $this->preset . '.link.style') . '"';
+								}
 							}
 							
-							if (key_exists('style', $property['options']) === true and $property['options']['style'] !== '')
+							$linkText = $column['text'];
+							if (isset($column['textModelProperty']) === true)
 							{
-								$linkClass = ' style="' . $property['options']['style'] . '"';
+								$linkText .= $model->{$column['textModelProperty']};
 							}
+							
+							$row[] = '<a href="' . $this->_generateLink($column, $model) . '"' . $linkClass . $linkStyle .'>' . $linkText . '</a>';
 						}
-						
-						if ($linkClass === '')
+						else if ($column['type'] === 'timestamp')
 						{
-							if (\Config::get('modelTable.' . $this->preset . '.link.class') !== null)
-							{
-								$linkClass = ' class="' . \Config::get('modelTable.' . $this->preset . '.link.class') . '"';
-							}
+							$row[] = '<p style="display: inline" data-toggle="tooltip" data-placement="top" data-title="' . Date::forge($model->$column['modelProperty'])->format("%m/%d/%Y %H:%M") . '">' . Date::time_ago($model->$column['modelProperty']) . '</p>';
 						}
-						
-						if ($linkStyle === '')
-						{
-							if (\Config::get('modelTable.' . $this->preset . '.link.style') !== null)
-							{
-								$linkStyle = ' style="' . \Config::get('modelTable.' . $this->preset . '.link.style') . '"';
-							}
-						}
-						
-						$row[] = '<a href="' . $this->_generateLink($property, $model) . '"' . $linkClass . $linkStyle .'>' . $property['text'] . '</a>';
 					}
-					else if ($property['type'] === 'timestamp')
+					else
 					{
-						$row[] = '<p style="display: inline" data-toggle="tooltip" data-placement="top" data-title="' . Date::forge($model->$property['property'])->format("%m/%d/%Y %H:%M") . '">' . Date::time_ago($model->$property['property']) . '</p>';
+						$row[] = $model->$column;
 					}
-				}
-				else
-				{
-					$row[] = $model->$property;
 				}
 			}
 			$rows[] = $row;
@@ -328,12 +347,12 @@ class ModelTable
 		return $table->generate();
 	}
 	
-	protected function _generateLink($passedProperty, $model)
+	protected function _generateLink($column, $model)
 	{
-		$href = $passedProperty['href'];
-		$property = $passedProperty['property'];
+		$href = $column['href'];
+		$linkModelProperty = $column['linkModelProperty'];
 		
-		if (is_array($href) === true and is_array($property) === true)
+		if (is_array($href) === true and is_array($linkModelProperty) === true)
 		{
 			$linkBuilder = '';
 			for ($i = 0; $i < count($href); $i++)
@@ -343,7 +362,7 @@ class ModelTable
 					$linkBuilder .= $href[$i];
 				}
 				
-				if (isset($property[$i]) and $property[$i] !== null)
+				if (isset($linkModelProperty[$i]) and $linkModelProperty[$i] !== null)
 				{
 					$linkBuilder .= $model->{$property[$i]};
 				}
@@ -353,7 +372,7 @@ class ModelTable
 		}
 		else
 		{
-			return Uri::create($href . '/' . $property);
+			return Uri::create($href . '/' . $model->{$linkModelProperty});
 		}
 	}
 }
