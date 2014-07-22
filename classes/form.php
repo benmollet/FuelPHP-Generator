@@ -9,19 +9,12 @@ class Form extends \Fuel\Core\Form
 	{
 		\Config::load('form', true);
 		
-		if (isset($formAttributes) === true)
-		{
-			foreach ($formAttributes as $formAttributeName => $formAttributeValue)
-			{
-					$this->$formAttributeName = $formAttributeValue;
-			}
-		}
-		$this->fieldset = Fieldset::forge($fieldsetName);
+		$this->fieldset = Fieldset::forge($fieldsetName, $formAttributes);
 		
-		$this->fieldset->set_config('form_template', View::forge('generator/template/form/' . $this->preset . '/form'));
-		$this->fieldset->set_config('field_template', View::forge('generator/template/form/' . $this->preset . '/field'));
-		$this->fieldset->set_config('multi_field_template', View::forge('generator/template/form/' . $this->preset . '/multi_field'));
-		$this->fieldset->set_config('group_label', View::forge('generator/template/form/' . $this->preset . '/group_label'));
+		$this->fieldset->set_config('form_template', View::forge('generator/template/form/' . $this->preset . '/_inner_form'));
+		$this->fieldset->set_config('field_template', View::forge('generator/template/form/' . $this->preset . '/_field'));
+		$this->fieldset->set_config('multi_field_template', View::forge('generator/template/form/' . $this->preset . '/_multi_field'));
+		$this->fieldset->set_config('group_label', View::forge('generator/template/form/' . $this->preset . '/_group_label'));
 	}
 	
 	public function addInput($field, $label = null, $attributes = array())
@@ -69,7 +62,7 @@ class Form extends \Fuel\Core\Form
 		$attributes['options'] = $options;
 		
 		$this->fieldset->add($field, $label, $attributes);
-		$this->fieldset->field($field)->set_template(View::forge('generator/template/form/' . $this->preset . '/radios_field'));
+		$this->fieldset->field($field)->set_template(View::forge('generator/template/form/' . $this->preset . '/_radios_field'));
 		
 	}
 	
@@ -84,7 +77,7 @@ class Form extends \Fuel\Core\Form
 		$attributes['options'] = $options;
 		
 		$this->fieldset->add($field, $label, $attributes);
-		$this->fieldset->field($field)->set_template(View::forge('generator/template/form/' . $this->preset . '/checkboxes_field'));
+		$this->fieldset->field($field)->set_template(View::forge('generator/template/form/' . $this->preset . '/_checkboxes_field'));
 		
 	}
 	
@@ -126,7 +119,7 @@ class Form extends \Fuel\Core\Form
 		$this->fieldset->add($field, $label, $attributes);
 	}
 	
-	public function addSelect($field, $label = '', $values = array(), $options = array(), $attributes = array())
+	public function addSelect($field, $label = '', $options = array(), $values = array(), $attributes = array())
 	{
 		$attributes = $this->getAttributes('select', $attributes);
 		
@@ -137,7 +130,7 @@ class Form extends \Fuel\Core\Form
 		$this->fieldset->add($field, $label, $attributes);
 	}
 	
-	public function addMultiSelect($field, $label = '', $values = array(), $options = array(), $attributes = array())
+	public function addMultiSelect($field, $label = '', $options = array(), $values = array(), $attributes = array())
 	{
 		$attributes = $this->getAttributes('multiSelect', $attributes);
 		
@@ -149,30 +142,11 @@ class Form extends \Fuel\Core\Form
 		$this->fieldset->add($field, $label, $attributes);
 	}
 	
-	//Maybe add later?
-//	public function addLabel($label, $id = null, $attributes = array())
-//	{
-//		$attributes = $this->getAttributes('label', $attributes);
-//		
-//		$this->formElements[] = Form::label($label, $id, $attributes);
-//	}
-	
-	public function generate()
+	public function build($actionUrl = '')
 	{
-		//Add a submit button if set in the config file
-//		if (\Config::get('form.' . $this->preset . '.addSubmit') !== null)
-//		{
-//			$submitField = \Config::get('form.' . $this->preset . '.addSubmit.field');
-//			$submitValue = \Config::get('form.' . $this->preset . '.addSubmit.value');
-//			$submitAttributes = \Config::get('form.' . $this->preset . '.addSubmit.attributes', array());
-//			$this->formElements[] = $this->addSubmit($submitField, $submitValue, $submitAttributes);
-//		}
+		$data['form'] = $this->fieldset->build($actionUrl);
 		
-		//$data['openCondition'] = $this->openCondition;
-		//$data['formElements'] = $this->formElements;
-		
-		//return View::forge('_form', $data, false);
-		return $this->fieldset->build();
+		return View::forge('generator/template/form/' . $this->preset . '/_form', $data, false);
 	}
 	
 	protected function getAttributes($type, $setAttributes)

@@ -138,6 +138,11 @@ class ModelTable
 		}
 	}
 	
+	public function addModel($modelName)
+	{
+		$modelName::set_table_columns($this);
+	}
+	
 	public function addTimestamp($modelProperty, $columnName = null)
 	{
 		if ($columnName == null)
@@ -151,7 +156,7 @@ class ModelTable
 		$this->columns[$columnName] = $newColumn;
 	}
 	
-	public function addLink($href, $text, $textModelProperty = null, $linkModelProperty = null, $columnName = null, $options = null)
+	public function addLink($href, $text, $linkModelProperty = null, $textModelProperty = null, $columnName = null, $options = null)
 	{
 		if ($columnName == null)
 		{
