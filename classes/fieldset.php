@@ -28,10 +28,17 @@ class Fieldset extends \Fuel\Core\Fieldset
 				// convert form field array's to Fuel dotted notation
 				$name = str_replace(array('[',']'), array('.', ''), $f->name);
 				
+<<<<<<< HEAD
 				$explodeName = explode('.', $name);
 				if (count($explodeName) > 1)
 				{
 					$value = array();
+=======
+				
+				$explodeName = explode('.', $name);
+				if (count($explodeName) > 1)
+				{
+>>>>>>> github/master
 					foreach ($input->{reset($explodeName)} as $model)
 					{
 						$value[] = $model->id;
@@ -59,6 +66,7 @@ class Fieldset extends \Fuel\Core\Fieldset
 
 		return $this;
 	}
+<<<<<<< HEAD
 	
 	/**
 	 * Build the fieldset HTML
@@ -191,4 +199,6 @@ class Fieldset extends \Fuel\Core\Fieldset
 
 		
 	}
+=======
+>>>>>>> github/master
 }
