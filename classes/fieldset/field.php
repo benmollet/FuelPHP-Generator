@@ -94,13 +94,10 @@ class Fieldset_Field extends \Fuel\Core\Fieldset_Field
 			case 'button':
 				$build_field = $form->button($this->name, $this->value, $this->attributes);
 			break;
-<<<<<<< HEAD
 		
 			case 'html':
 				$build_field = $this->attributes['html'];
 			break;
-=======
->>>>>>> github/master
 
 			case false:
 				$build_field = '';
