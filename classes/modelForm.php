@@ -22,6 +22,12 @@ class ModelForm extends Form
 		$this->fieldset = $this->form->fieldset;
 		$this->model = $model;
 	}
+	
+	public static function forge($model, $preset = 'default', $config = array(), $fieldsetName = 'default')
+	{
+		$newModelForm = new ModelForm($model, $preset, $config, $fieldsetName);
+		return $newModelForm;
+	}
         
         public function addText($modelProperty, $label = '', $config = array(), $rules = array())
 	{
