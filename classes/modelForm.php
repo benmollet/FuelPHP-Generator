@@ -314,10 +314,14 @@ class ModelForm extends Form
 				}
 			}
 			
-			foreach ($this->fixedModelProperties as $fixedModelPropertyName => $fixedModelPropertyValue)
+			if (isset($this->fixedModelProperties) === true)
 			{
-				$model->$fixedModelPropertyName = $fixedModelPropertyValue;
+				foreach ($this->fixedModelProperties as $fixedModelPropertyName => $fixedModelPropertyValue)
+				{
+					$model->$fixedModelPropertyName = $fixedModelPropertyValue;
+				}
 			}
+			
 			
 			$model->save();
 			
