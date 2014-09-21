@@ -1,54 +1,57 @@
 <?php
 class Menu {
-    public $menuArray;
-    
-    public $menuHtml;
-    
-    public function __construct($menuArray = null)
+	protected $config = array();
+    protected $links = array();
+	protected $preset = 'default';
+	
+    public function __construct($preset = 'default', $config = array())
     {
-        if ($menuArray !== null and is_array($menuArray) === true)
-        {
-            $this->menuArray = $menuArray;
-            return;
-        }
-        
-        $this->menuArray = array();
-        
-        return;
+		$this->preset = $preset;
+		
+		\Config::load('generator', true);
+		
+		$this->config = \Arr::merge(\Config::get('generator.menu.' . $this->preset), $config);
+		$this->config['outerElement'] = $this->config['menu'];
+		
+		// Set default view
+		if (isset($this->config['view']) === false)
+		{
+			$this->config['view'] = 'generator/template/menu/default/_menu';
+		}
     }
+	
+	public function addLink($href = null, $text = null, $config = array())
+	{
+		$newLink = new stdClass;
+		$newLink = (object) \Arr::merge($this->config['linkContainer'], $config);
+		
+		// Set the href if set
+		if ($href !== null)
+		{
+			$newLink->href = $href;
+		}
+		
+		// Get the default link attributes from config
+		$attributes = array();
+		if (isset($this->config['link']['attributes']) === true)
+		{
+			$attributes = $this->config['link']['attributes'];
+		}
+		
+		// Set the text if set
+		if ($text !== null)
+		{
+			$newLink->text = Html::anchor($href, $text, $attributes);
+		}
+		
+		$this->links[] = $newLink;
+	}
     
-    public function addLink($text = null, $location = null, $class = null)
+    public function build()
     {
-        if ($location === null)
-        {
-            throw new \Exception('Link location cannt be null');
-            return;
-        }
-        
-        if ($text === null)
-        {
-            throw new \Exception('Link text cannt be null');
-        }
-        
-        if ($class !== null)
-        {
-            array_push($this->menuArray, array(
-                'location' => $location,
-                'text' => $text,
-                'class' => $class,
-            ));
-        }
-        else
-        {
-            array_push($this->menuArray, array(
-                'location' => $location,
-                'text' => $text,
-            ));
-        }
-    }
-    
-    public function generate()
-    {
-        return \View::forge('menu', $this);
+		$newList = new \GeneratorList('default', $this->config);
+		$newList->addElement($this->links);
+		
+        return $newList->build();
     }
 }

@@ -7,8 +7,13 @@
  */
 
 Autoloader::add_classes(array(
-	'Form'		=>	__DIR__.'/classes/form.php',
-	'Table'		=>	__DIR__.'/classes/table.php',
-	'Menu'		=>	__DIR__.'/classes/menu.php',
-	'HtmlList'	=>	__DIR__.'/classes/list.php',
+	'Form'			=>	__DIR__.'/classes/form.php',
+	'ModelForm'		=>	__DIR__.'/classes/modelForm.php',
+	'Table'			=>	__DIR__.'/classes/table.php',
+	'ModelTable'	=>	__DIR__.'/classes/modelTable.php',
+	'Form_Instance'	=>	__DIR__.'/classes/form/instance.php',
+	'Fieldset_Field'=>	__DIR__.'/classes/fieldset/field.php',
+	'Fieldset'		=>	__DIR__.'/classes/fieldset.php',
+	'Menu'			=>	__DIR__.'/classes/menu.php',
+	'GeneratorList'	=>	__DIR__.'/classes/generatorList.php',
 ));

@@ -33,15 +33,15 @@ if (Session::get_flash('error'))
 			}
 			if (\Input::post($formElement['name']) !== null)
 			{
-				echo '<textarea class="form-control ' . Variables::get('texteditor', 'summernote') . '" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '>' . \Input::post($formElement['name']) . '</textarea>';
+				echo '<textarea class="form-control summernote" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '>' . \Input::post($formElement['name']) . '</textarea>';
 			}
 			else if ($formElement['value'] !== '')
 			{
-				echo '<textarea class="form-control ' . Variables::get('texteditor', 'summernote') . '" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '">' . $formElement['value'] . '</textarea>';
+				echo '<textarea class="form-control summernote" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '">' . $formElement['value'] . '</textarea>';
 			}
 			else
 			{
-				echo '<textarea class="form-control ' . Variables::get('texteditor', 'summernote') . '" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '"></textarea>';
+				echo '<textarea class="form-control summernote" description="' . $formElement['name'] . '" name="' . $formElement['name'] . '"></textarea>';
 			}
 		}
 		else if ($formElement['type'] === 'text')

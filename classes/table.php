@@ -1,212 +1,207 @@
 <?php
 
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-class Table
+class table 
 {
-	public $modelCount;
-	public $models;
-	public $modelName;
-	public $page;
-	public $paginationType;
-	public $rowContent;
-	public $sortable;
-	public $tableDisplayName;
-	public $tableHeaders;
-    public $tableName;
-	public $urlSuffix;
-    
-    public function __construct($models, $properties)
-    {
-		if (key_exists('tableName', $properties) === true)
+	protected $class;
+	protected $config;
+	protected $columns;
+	protected $tableName;
+	protected $rows;
+	protected $style;
+	protected $preset = 'default';
+	
+	public function __construct($tableName, $columns, $rows, $totalPages = null, $currentPage = 1, $preset = 'default', $options = array())
+	{
+		\Config::load('generator', true);
+		
+		$this->tableName = $tableName;
+		$this->preset = $preset;
+		
+		$config = \Config::get('generator.table.' . $preset);
+		
+		$config = array_merge($config, $options);
+		$this->config = $config;
+		
+		$this->columns = $columns;
+		$this->rows = $rows;
+		
+		//Set the current page
+		if (Input::get($this->tableName . 'Page') !== null)
 		{
-			$this->tableName = $properties['tableName'];
+			$currentPage = Input::get($this->tableName . 'Page');
 		}
 		
-		if (key_exists('tableDisplayName', $properties) === true)
-		{
-			$this->tableDisplayName = $properties['tableDisplayName'];
-		}
+		$this->currentPage = (int) $currentPage;
+		$this->totalPages = (int) $totalPages;
+	}
+	
+	public function sortable()
+	{
+		$this->sortable = true;
+	}
+	
+	public function build()
+	{
+		//Set the table name
+		$data['tableName'] = $this->tableName;
 		
-		if (key_exists('tableHeaders', $properties) === true)
+		if (isset($this->config['table']['attributes']['class']) === true)
 		{
-			$this->tableHeaders = $properties['tableHeaders'];
-		}
-		
-		if (key_exists('tableClass', $properties) === true)
-		{
-			$this->tableClass = $properties['tableClass'];
-		}
-		else
-		{
-			$this->tableClass = 'table';
-		}
-		
-		
-		if (key_exists('inPanel', $properties) === true)
-		{
-			$this->inPanel = $properties['inPanel'];
-		}
-		else
-		{
-			$this->inPanel = false;
-		}
-		
-		if (key_exists('sortable', $properties) === true)
-		{
-			$this->tableClass .= ' dataTable';
-			$this->sortable = $properties['sortable'];
-		}
-		else
-		{
-			$this->sortable = false;
-		}
-		
-		if (key_exists('page', $properties) === true and $properties['page'] !== null)
-		{
-			$this->page = $properties['page'];
-		}
-		else if (\Input::get($this->tableName . '-page') !== null)
-		{
-			$this->page = \Input::get($this->tableName . '-page');
-			$this->paginationType = 'get';
-		}
-		else 
-		{
-			$this->page = 1;
-			$this->paginationType = 'get';
-		}
-		
-		if (key_exists('paginationUrl', $properties) === true)
-		{
-			$this->paginationUrl = $properties['paginationUrl'];
-		}
-		else
-		{
-			$this->paginationUrl = null;
-		}
-		
-		if (key_exists('rowsLimit', $properties) === true)
-		{
-			$this->rowsLimit = $properties['rowsLimit'];
-		}
-		else
-		{
-			//Default of 10
-			$this->rowsLimit = 10;
-		}
-		
-		if (key_exists('determinePagination', $properties) === true)
-		{
-			$this->determinePagination = $properties['determinePagination'];
-		}
-		else
-		{
-			//Default of 10
-			$this->determinePagination = false;
-		}
-		
-		if (is_array($models) === false)
-		{
-			$modelName = $models;
-			$this->modelCount = $modelName::count();
-			
-			if (\Input::get($this->tableName . '-sort-by') !== null)
+			//Add in datatable if sortable
+			if (isset($this->sortable) === true and $this->sortable === true)
 			{
-				$this->sortBy = \Input::get($this->tableName . '-sort-by');
-				
-				$sortBy = \Input::get($this->tableName . '-sort-by');
-				$sortBy = str_replace('->', '.', $sortBy);
-				$related = explode('.', $sortBy);
-				array_pop($related);
-				
-				if (\Input::get($this->tableName . '-sort-direction') !== null)
+				$this->config['table']['attributes']['class'] .= ' dataTable';
+			}
+			
+			$data['class'] = ' class="' . $this->config['table']['attributes']['class'] . '"';
+		}
+		
+		//Set the table style
+		$data['style'] = '';
+		if (isset($this->config['table']['attributes']['style']) === true)
+		{
+			$data['style'] = ' style="' . $this->attributes['class'] . '"';
+		}
+		
+		//Generate the table headers
+		$data['headers'] = '';
+		foreach ($this->columns as $column)
+		{
+			if (is_array($column) === true)
+			{
+				if (isset($column['config']['attributes']) === true)
 				{
-					
-					$this->models = $modelName::query()
-						->rows_offset(($this->rowsLimit * $this->page) - $this->rowsLimit)
-						->rows_limit($this->rowsLimit)
-						->related($related)
-						->order_by($sortBy, \Input::get($this->tableName . '-sort-direction'))
-						->get();
-					$this->sortDirection = \Input::get($this->tableName . '-sort-direction');
+					$data['headers'] .= html_tag('th', $column['config']['attributes'], $column['columnName']);
 				}
 				else
 				{
-					$this->models = $modelName::query()
-						->rows_offset(($this->rowsLimit * $this->page) - $this->rowsLimit)
-						->rows_limit($this->rowsLimit)
-						->related($related)
-						->order_by($sortBy)
-						->get();
-					$this->sortDirection = 'desc';
+					$data['headers'] .= html_tag('th', array(), $column['columnName']);
 				}
 			}
 			else
 			{
-				$this->models = $modelName::query()
-					->rows_offset(($this->rowsLimit * $this->page) - $this->rowsLimit)
-					->rows_limit($this->rowsLimit)
-					->get();
+				$data['headers'] .= html_tag('th', array(), $column);
 			}
 			
-			
-			$this->pageCount = ceil($this->modelCount / $this->rowsLimit);
-			$this->pageStart = ($this->rowsLimit * $this->page) - $this->rowsLimit;
-			$this->pageEnd = $this->rowsLimit * $this->page;
 		}
-		else
+		
+		//Generate the table body
+		$data['body'] = '';
+		foreach ($this->rows as $row)
 		{
-			$this->models = $models;
-			$this->modelCount = count($models);
-			$this->pageCount = ceil($this->modelCount / $this->rowsLimit);
-			$this->pageStart = ($this->rowsLimit * $this->page) - $this->rowsLimit;
-			$this->pageEnd = $this->rowsLimit * $this->page;
-			
-			if (count($models) > $this->rowsLimit)
+			//Set row class
+			$rowClass = '';
+			if (key_exists('class', $row) === true)
 			{
-				$this->determinePagination = true;
+				$rowClass = ' class="' . $row['class'] . '"';
+			}
+			
+			//Set row style
+			$rowStyle = '';
+			if (key_exists('style', $row) === true)
+			{
+				$rowStyle = ' style="' . $row['style'] . '"';
+			}
+			
+			$data['body'] .= '<tr';
+			$data['body'] .= $rowClass;
+			$data['body'] .= $rowStyle;
+			$data['body'] .= '>';
+			
+			if (key_exists('contents', $row) === true)
+			{
+				$row = $row['contents'];
+			}
+			
+			foreach ($row as $cell)
+			{
+				$data['body'] .= '<td>';
+				$data['body'] .= $cell;
+				$data['body'] .= '</td>';
+			}
+			
+			$data['body'] .= '</tr>';
+		}
+		
+		//Add pagination
+		$data['pagination'] = '';
+		if (isset($this->currentPage) === true and isset($this->totalPages) === true and $this->totalPages > 1)
+		{
+			$data['pagination'] .= '<tr>';
+			$data['pagination'] .= '<td colspan="' . count($this->columns) . '">';
+			$data['pagination'] .= '<ul style="margin: 0" class="pagination">';
+			
+			$getParameters = \Input::get();
+			array_shift($getParameters);
+
+			foreach ($getParameters as $getParameterIndex => $getParameterValue)
+			{
+				if ($getParameterIndex === $this->tableName . 'Page')
+				{
+					unset($getParameters[$getParameterIndex]);
+				}
+			}
+			
+//			if (isset($this->paginationUrl) === false)
+//			{
+//				$this->paginationUrl = Uri::current() . $baseGetParameters . $this->tableName . 'Page=';
+//			}
+			
+			if ($this->currentPage === 1)
+			{
+				$data['pagination'] .= html_tag('li', array('class' => 'disabled'), Html::anchor(Uri::create('', array(), $getParameters), '&laquo;', array('class' => 'disabled pagination-link')));
+			}
+			else
+			{
+				// Add the new page to the get parameters
+				$getParameters[$this->tableName . 'Page'] = $this->currentPage - 1;
+					
+				$data['pagination'] .= html_tag('li', array(), Html::anchor(Uri::create('', array(), $getParameters), '&laquo;', array('class' => 'pagination-link')));
+			}
+			
+			for ($pageNumber = 1; $pageNumber <= $this->totalPages; $pageNumber++)
+			{
+				$attributes = array();
+				if ($pageNumber === (int) $this->currentPage)
+				{
+					$attributes['class'] = 'active';
+				}
+				
+				// Add the new page to the get parameters
+				$getParameters[$this->tableName . 'Page'] = $pageNumber;
+					
+				$data['pagination'] .= html_tag('li', $attributes, Html::anchor(Uri::create('', array(), $getParameters), $pageNumber, array('class' => 'pagination-link')));
+			}
+			
+			if ($this->currentPage === $this->totalPages)
+			{
+				// Add the new page to the get parameters
+				$getParameters[$this->tableName . 'Page'] = $pageNumber;
+					
+				$data['pagination'] .= html_tag('li', array('class' => 'disabled'), Html::anchor(Uri::create('', array(), $getParameters), '&raquo;', array('class' => 'pagination-link disabled')));
+			}
+			else
+			{
+				// Add the new page to the get parameters
+				$getParameters[$this->tableName . 'Page'] = $this->currentPage + 1;
+					
+				$data['pagination'] .= html_tag('li', array(), Html::anchor(Uri::create('', array(), $getParameters), '&raquo;', array('class' => 'pagination-link')));
+			}
+			
+			$data['pagination'] .= '</ul>';
+			$data['pagination'] .= '</td>';
+			$data['pagination'] .= '</tr>';
+			$data['currentPage'] = $this->currentPage;
+		}
+		
+		if (isset($this->config['custom']) === true)
+		{
+			foreach ($this->config['custom'] as $customName => $customValue)
+			{
+				$data[$customName] = $customValue;
 			}
 		}
 		
-		if (\Input::method() === 'POST' and \Input::post('urlSuffix') !== null)
-		{
-			$this->urlSuffix = \Input::post('urlSuffix');
-		}
-		else
-		{
-			$this->urlSuffix = '';
-		}
-		
-        $this->rowContent = array();
-        return;
-    }
-    
-    public function generate()
-    {
-        $data = new stdClass;
-        $data = $this;
-        
-        return View::forge('table', $data);
-    }
-    
-    public function addCell($cellContents)
-    {
-        if ($cellContents === null)
-        {
-            throw Excelption('Cell contents cannot be empty');
-            return;
-        }
-        
-        array_push($this->rowContent, $cellContents);
-    }
-    
-    public function generateFromModel()
-    {
-        return $this->generate();
-    }
+		return View::forge('generator/template/table/' . $this->preset . '/_table', $data, false);
+	}
 }
