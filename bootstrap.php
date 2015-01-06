@@ -7,7 +7,7 @@
  */
 
 Autoloader::add_classes(array(
-	'Form'			=>	__DIR__.'/classes/form.php',
+	'Generator\Form'			=>	__DIR__.'/classes/form.php',
 	'ModelForm'		=>	__DIR__.'/classes/modelForm.php',
 	'Table'			=>	__DIR__.'/classes/table.php',
 	'ModelTable'	=>	__DIR__.'/classes/modelTable.php',
