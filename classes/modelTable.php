@@ -6,6 +6,8 @@
  * and open the template in the editor.
  */
 
+namespace Generator;
+
 class ModelTable
 {
 	protected $attributes = array();
@@ -25,7 +27,7 @@ class ModelTable
 	
 	public function sort($a, $b)
 	{
-		$sortingBy = Input::get($this->tableName . '-sort-by');
+		$sortingBy = \Input::get($this->tableName . '-sort-by');
 		
 		if ($this->sortDirection === 'asc')
 		{
@@ -84,7 +86,7 @@ class ModelTable
 				$this->pageStart = ($this->rowsLimit * $this->currentPage) - $this->rowsLimit;
 				$this->pageEnd = $this->rowsLimit * $this->currentPage;
 				
-				if (Input::get($this->tableName . '-sort-by') !== null)
+				if (\Input::get($this->tableName . '-sort-by') !== null)
 				{
 					$tableName = $this->tableName;
 					$this->sortDirection = Input::get($this->tableName . '-sort-direction');
@@ -336,7 +338,7 @@ class ModelTable
 			}
 		}
 		
-		$newColumn['columnName'] = \Html::anchor(Uri::create(null, array(), $getParameters), $columnName);
+		$newColumn['columnName'] = \Html::anchor(\Uri::create(null, array(), $getParameters), $columnName);
 		$newColumn['modelProperty'] = $modelProperty;
 		$newColumn['type'] = 'property';
 
@@ -392,7 +394,7 @@ class ModelTable
 		}
 		
 
-		$table = new Table($this->tableName, $this->columns, $this->rows, $this->totalPages, $this->currentPage, $this->preset, $this->config);
+		$table = new \Generator\Table($this->tableName, $this->columns, $this->rows, $this->totalPages, $this->currentPage, $this->preset, $this->config);
 		
 		if ($this->sortable === true)
 		{
@@ -481,7 +483,7 @@ class ModelTable
 			}
 		}
 
-		$column['config']['link']['attributes']['href'] = Uri::create($linkBuilder);
+		$column['config']['link']['attributes']['href'] = \Uri::create($linkBuilder);
 		
 		//Return the built html tag or nothing if the next is blank
 		if ($textBuilder !== '')

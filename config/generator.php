@@ -85,10 +85,8 @@ return array(
 	),
 	'table'	=>	array(
 		'default'	=>	array(
-			'table'	=>	array(
-				'attributes' => array(
-					'class'	=>	'table table-bordered',
-				),
+			'attributes' => array(
+				'class'	=>	'table table-bordered',
 			),
 			'link'  =>  array(
 				'class' =>  'btn btn-xs',
@@ -96,10 +94,8 @@ return array(
 			),
 		),
 		'panel'	=>  array(
-			'table'	=>	array(
-				'attributes' => array(
-					'class'	=>	'table table-bordered',
-				),
+			'attributes' => array(
+				'class'	=>	'table table-bordered',
 			),
 			'link'	=>	array(
 				'attributes'	=>	array(

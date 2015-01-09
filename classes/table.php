@@ -1,5 +1,7 @@
 <?php
 
+namespace Generator;
+
 class table 
 {
 	protected $class;
@@ -26,9 +28,9 @@ class table
 		$this->rows = $rows;
 		
 		//Set the current page
-		if (Input::get($this->tableName . 'Page') !== null)
+		if (\Input::get($this->tableName . 'Page') !== null)
 		{
-			$currentPage = Input::get($this->tableName . 'Page');
+			$currentPage = \Input::get($this->tableName . 'Page');
 		}
 		
 		$this->currentPage = (int) $currentPage;
@@ -45,20 +47,20 @@ class table
 		//Set the table name
 		$data['tableName'] = $this->tableName;
 		
-		if (isset($this->config['table']['attributes']['class']) === true)
+		if (isset($this->config['attributes']['class']) === true)
 		{
 			//Add in datatable if sortable
 			if (isset($this->sortable) === true and $this->sortable === true)
 			{
-				$this->config['table']['attributes']['class'] .= ' dataTable';
+				$this->config['attributes']['class'] .= ' dataTable';
 			}
 			
-			$data['class'] = ' class="' . $this->config['table']['attributes']['class'] . '"';
+			$data['class'] = ' class="' . $this->config['attributes']['class'] . '"';
 		}
 		
 		//Set the table style
 		$data['style'] = '';
-		if (isset($this->config['table']['attributes']['style']) === true)
+		if (isset($this->config['attributes']['style']) === true)
 		{
 			$data['style'] = ' style="' . $this->attributes['class'] . '"';
 		}
@@ -149,14 +151,14 @@ class table
 			
 			if ($this->currentPage === 1)
 			{
-				$data['pagination'] .= html_tag('li', array('class' => 'disabled'), Html::anchor(Uri::create('', array(), $getParameters), '&laquo;', array('class' => 'disabled pagination-link')));
+				$data['pagination'] .= html_tag('li', array('class' => 'disabled'), \Html::anchor(\Uri::create('', array(), $getParameters), '&laquo;', array('class' => 'disabled pagination-link')));
 			}
 			else
 			{
 				// Add the new page to the get parameters
 				$getParameters[$this->tableName . 'Page'] = $this->currentPage - 1;
 					
-				$data['pagination'] .= html_tag('li', array(), Html::anchor(Uri::create('', array(), $getParameters), '&laquo;', array('class' => 'pagination-link')));
+				$data['pagination'] .= html_tag('li', array(), \Html::anchor(\Uri::create('', array(), $getParameters), '&laquo;', array('class' => 'pagination-link')));
 			}
 			
 			for ($pageNumber = 1; $pageNumber <= $this->totalPages; $pageNumber++)
@@ -170,7 +172,7 @@ class table
 				// Add the new page to the get parameters
 				$getParameters[$this->tableName . 'Page'] = $pageNumber;
 					
-				$data['pagination'] .= html_tag('li', $attributes, Html::anchor(Uri::create('', array(), $getParameters), $pageNumber, array('class' => 'pagination-link')));
+				$data['pagination'] .= html_tag('li', $attributes, \Html::anchor(\Uri::create('', array(), $getParameters), $pageNumber, array('class' => 'pagination-link')));
 			}
 			
 			if ($this->currentPage === $this->totalPages)
@@ -178,14 +180,14 @@ class table
 				// Add the new page to the get parameters
 				$getParameters[$this->tableName . 'Page'] = $pageNumber;
 					
-				$data['pagination'] .= html_tag('li', array('class' => 'disabled'), Html::anchor(Uri::create('', array(), $getParameters), '&raquo;', array('class' => 'pagination-link disabled')));
+				$data['pagination'] .= html_tag('li', array('class' => 'disabled'), \Html::anchor(\Uri::create('', array(), $getParameters), '&raquo;', array('class' => 'pagination-link disabled')));
 			}
 			else
 			{
 				// Add the new page to the get parameters
 				$getParameters[$this->tableName . 'Page'] = $this->currentPage + 1;
 					
-				$data['pagination'] .= html_tag('li', array(), Html::anchor(Uri::create('', array(), $getParameters), '&raquo;', array('class' => 'pagination-link')));
+				$data['pagination'] .= html_tag('li', array(), \Html::anchor(\Uri::create('', array(), $getParameters), '&raquo;', array('class' => 'pagination-link')));
 			}
 			
 			$data['pagination'] .= '</ul>';
@@ -202,6 +204,6 @@ class table
 			}
 		}
 		
-		return View::forge('generator/template/table/' . $this->preset . '/_table', $data, false);
+		return \View::forge('generator/template/table/' . $this->preset . '/_table', $data, false);
 	}
 }

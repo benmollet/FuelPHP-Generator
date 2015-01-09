@@ -6,9 +6,11 @@
  * and open the template in the editor.
  */
 
-class ModelForm extends Form
+namespace Generator;
+
+class ModelForm
 {
-        protected $config = array();
+	protected $config = array();
 	protected $form;
 	protected $model;
 	protected $modelProperties;
@@ -211,7 +213,7 @@ class ModelForm extends Form
 		$input = \Input::post();
 		
 		//Check for post
-		if (Input::method() === 'POST' and $checkPost === true and empty($input) === false)
+		if (\Input::method() === 'POST' and $checkPost === true and empty($input) === false)
 		{
 			if (is_object($this->model) === true)
 			{
@@ -223,7 +225,7 @@ class ModelForm extends Form
 				$this->model = $model;
 			}
 			
-			$validation = Validation::forge();
+			$validation = \Validation::forge();
 			
 			if ($validation->run() === false)
 			{
@@ -238,9 +240,9 @@ class ModelForm extends Form
 				if (count($explodeName) > 1)
 				{
 					$incomingModelIds = array();
-					if (Input::post($postName) !== null)
+					if (\Input::post($postName) !== null)
 					{
-						$incomingModelIds =Input::post($postName);
+						$incomingModelIds = \Input::post($postName);
 					}
 					
 					$existingModels = $this->model->{reset($explodeName)};
@@ -306,9 +308,9 @@ class ModelForm extends Form
 					
 					
 				}
-				else if (Input::post($modelProperty) !== null)
+				else if (\Input::post($modelProperty) !== null)
 				{
-					$model->$modelProperty = Input::post($modelProperty);
+					$model->$modelProperty = \Input::post($modelProperty);
 				}
 				else if (isset($this->modelPropertiesDefaults[$modelProperty]) === true)
 				{
@@ -337,7 +339,7 @@ class ModelForm extends Form
 			}
 			else
 			{
-				$responseUrl = Uri::current();
+				$responseUrl = \Uri::current();
 			}
 			
 			//If the request came from a different url, then send back.
@@ -346,7 +348,7 @@ class ModelForm extends Form
 				$responseUrl = \Input::referrer();
 			}
 			
-			Response::redirect($responseUrl);
+			\Response::redirect($responseUrl);
 			
 		}
 		
