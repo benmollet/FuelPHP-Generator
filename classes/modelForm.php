@@ -201,9 +201,8 @@ class ModelForm
 		return $this;
 	}
 	
-	public function build($actionUrl = '')
+	public function build($actionUrl = '', $checkPost = true)
 	{
-		$checkPost = true;
 		//To make it harder to accidently allow post to be checked. If post is being sent to another page then it should not be allowed to be checked here.
 		if ($actionUrl !== '')
 		{
